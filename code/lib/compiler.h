@@ -18,6 +18,7 @@ extern void RETURN();
 extern void STMT();
 extern void VAR(int scope);
 extern char *CALL(char *id);
+extern char *INDEX(char *a);
 extern void PROG();
 void compile(char *code);
 void compileFile(char *file, char *ext);

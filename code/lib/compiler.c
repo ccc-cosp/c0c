@@ -3,7 +3,18 @@
 char code[TMAX];
 char *scopeName[] = {"global", "local", "param", "inner"};
 
-// F = (E) | Number | Literal | Id | CALL
+
+// INDEX = id [ E ]
+char *INDEX(char *a) {
+  skip("[");
+  char *e = E();
+  skip("]");
+  char *t = nextTemp();
+  emit("[]", t, a, e);
+  return t;
+}
+
+// F = (E) | Number | Literal | Id | CALL | Id [E]
 char *F() {
   char *f;
   if (isNext("(")) { // '(' E ')'
@@ -18,6 +29,8 @@ char *F() {
     char *id = next();
     if (isNext("(")) { // CALL ex: sum(n)
       f = CALL(id);
+    } else if (isNext("[")) {
+      f = INDEX(id);
     } else { // id
       f = id;
     }
@@ -114,6 +127,7 @@ char *CALL(char *id) {
   return t;
 }
 
+
 // STMT = WHILE | IF | BLOCK | RETURN | (ASSIGN | CALL);
 void STMT() {
   if (isNext("while"))
@@ -139,13 +153,17 @@ void STMT() {
 
 // VAR = Type idList
 void VAR(int scope) {
-  skipType(Type); // Type = var char int
-  char *id = skipType(Id); // 宣告變數
-  emit(scopeName[scope], id, "", "");
+  char *type = skipType(Type); // type = var | char | int
+  char *star = "";
+  if (isNext("*")) star = skip("*");
+  char *id = skipType(Id);
+  emit(scopeName[scope], id, type, "");
   while (isNext(",")) {
     skip(",");
+    star = "";
+    if (isNext("*")) star = skip("*");
     id = skipType(Id);
-    emit(scopeName[scope], id, "", "");
+    emit(scopeName[scope], id, type, "");
   }
   // skip(";");
 }
@@ -163,7 +181,7 @@ void compileFile(char *file, char *ext) {
   sprintf(cFileName, "%s.%s", file, ext);
   sprintf(pFileName, "%s.p0", file);
   sprintf(asmFileName, "%s.o0", file);
-  FILE *pFile = fopen(pFileName, "wt");
+  pFile = fopen(pFileName, "wt");
 
   readText(cFileName, code, TMAX);
   puts(code);

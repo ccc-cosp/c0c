@@ -1,0 +1,18 @@
+    function   total      int                  
+    param      a          int        *         
+    param      size       int                  
+    local      s          int                  
+    local      i          int                  
+    =          t0         0                    
+    =          s          t0                   
+    =          t1         0                    
+    =          i          t1                   
+(WBEGIN2)
+    <          t4         i          size      
+    jnz        WEND3      t4                   
+    []         t5         a          i         
+    +          t6         s          t5        
+    =          s          t6                   
+    jmp        WBEGIN2                         
+(WEND3)
+    return     s                               
