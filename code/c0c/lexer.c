@@ -1,38 +1,31 @@
-#include "compiler.h"
-
-#define TMAX 10000000
-#define LMAX 100
+#include "lexer.h"
 
 char *typeName[6] = {"Id", "Keyword", "Type", "Number", "Literal", "Char"};
-char code[TMAX], *p;
-char strTable[TMAX], *strTableEnd=strTable;
-char *tokens[TMAX], tokenTop=0, tokenIdx=0, token[LMAX];
-int tokenLines[TMAX], tokenPos[TMAX], tokenTypes[TMAX];
-char *tokenStarts[TMAX];
-char *lineBegin = code;
+char token[SMAX];
+int  line, pos, type, tokenIdx;
+char *p, *start, *lineBegin;
 
-char *strAdd(char *str) {
-  char *strPtr = strTableEnd;
-  strcpy(strTableEnd, str);
-  strTableEnd += (strlen(str)+1);
-  return strPtr;
+void lexInit(char *code) {
+  p = code;
+  lineBegin = code;
+  tokenIdx = 0;
+  line = 1;
 }
 
-int lineIdx = 1;
-
-char *scan() {
+char *lexScan() {
   while (isspace(*p)) {
     if (*p == '\n') {
       lineBegin = p+1;
-      lineIdx ++;
+      line ++;
     }
     p++;
   }
-  char *start = p;
-  int type;
+  start = p;
 
-  if (*p == '\0') return NULL;
-  if (*p == '"') {
+  if (*p == '\0') {
+    *token = '\0';
+    return token;
+  } else if (*p == '"') {
     p++;
     while (*p != '"') p++;
     p++;
@@ -46,44 +39,23 @@ char *scan() {
   } else if (strchr("<>!=", *p) != NULL) { // < , <=, >, >=, != ==
     p++;
     if (*p == '=') p++;  
-  } /* else if (*p == '\n') {
-    lineBegin = p+1;
-    lineIdx ++;
-  } */ else {
+  } else {
     p++;
     type = Char;
   }
   int len = p-start;
   strncpy(token, start, len);
   token[len] = '\0';
-
-  // strcpy(strTableEnd, token);
-  // tokens[tokenTop] = strTableEnd;
-  tokens[tokenTop] = strAdd(token);
-  tokenTypes[tokenTop] = type;
-  tokenLines[tokenTop] = lineIdx;
-  tokenPos[tokenTop] = p - lineBegin;
-  tokenStarts[tokenTop] = start;
-  
-  // strTableEnd += (strlen(token)+1);
-  // printf("token=%s\n", token);
-  tokenTop++;
+  pos = p - lineBegin;
+  tokenIdx++;
   return token;
 }
 
-int lexDump() {
-  printf("========== lexDump() ==============\n");
-  for (int i=0; i<tokenTop; i++) {
-    printf("%04d:%-10s line=%d pos=%d type=%s\n", i, tokens[i], tokenLines[i], tokenPos[i], typeName[tokenTypes[i]]);
-  }
-}
-
 int lex(char *code) {
-  p = code;
-  tokenTop = 0;
+  lexInit(code);
   while (1) {
-    char *tok = scan();
-    if (tok == NULL) break;
+    char *tok = lexScan();
+    if (*tok == '\0') break;
+    printf("%04d:%-10s line=%d pos=%d type=%s\n", tokenIdx, token, line, pos, typeName[type]);
   }
-  lexDump();
 }

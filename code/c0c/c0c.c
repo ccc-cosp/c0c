@@ -8,12 +8,7 @@ int readText(char *fileName, char *text, int size) {
   return len;
 }
 
-int dump(char *strTable[], int top) {
-  printf("========== dump ==============\n");
-  for (int i=0; i<top; i++) {
-    printf("%d:%s\n", i, strTable[i]);
-  }
-}
+char code[TMAX];
 
 int main(int argc, char * argv[]) {
   char *file = argv[1], cFileName[SMAX], pFileName[SMAX], asmFileName[SMAX]; 
@@ -21,13 +16,11 @@ int main(int argc, char * argv[]) {
   sprintf(cFileName, "%s.c0", file);
   sprintf(pFileName, "%s.p0", file);
   sprintf(asmFileName, "%s.o0", file);
-  pFile = fopen(pFileName, "wt");
+  FILE *pFile = fopen(pFileName, "wt");
 
   readText(cFileName, code, TMAX);
   puts(code);
   lex(code);
-  // dump(tokens, tokenTop);
-  compile();
-  
+  compile(code);
   fclose(pFile);
 }
