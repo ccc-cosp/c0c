@@ -1,10 +1,11 @@
 t0 = isSuccess
-goto L0 if T0=0
+goto ELSE0 if T0=0
 t1 = "Success!"
 push t1
 t2 = call printf
-goto L1
+goto ENDIF1
+(ELSE0)
 t3 = "Fail!"
 push t3
 t4 = call printf
-(L1)
+(ENDIF1)

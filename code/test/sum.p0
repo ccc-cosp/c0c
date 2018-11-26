@@ -1,26 +1,27 @@
-function sum
-param n
-var s
-var i
-t0 = 0
-s = t0
-t1 = 1
-i = t1
-(L0)
-t2 = i
-t3 = n
-t4 = t2 <= t3
-goto L1 if T4
-t5 = s
-t6 = i
-t7 = t5 + t6
-s = t7
-t8 = i
-t9 = 1
-t10 = t8 + t9
-i = t10
-goto L0
-(L1)
-t11 = s
-return t11
-t12 = sum
+    function   sum                             
+    param      n                               
+    var        s                               
+    var        i                               
+    =          t0         0                    
+    =          s          t0                   
+    =          t1         1                    
+    =          i          t1                   
+(WBEGIN2)
+    <=         t4         i          n         
+    jne        WEND3      t4                   
+    +          t5         s          i         
+    =          s          t5                   
+    =          t6         1                    
+    +          t7         i          t6        
+    =          i          t7                   
+    jmp        WBEGIN2                         
+(WEND3)
+    return     s                               
+    =          t8         10                   
+    push       t8                              
+    call       t9         sum                  
+    =          s          t9                   
+    =          t10        "sum=%s\n"           
+    push       t10                             
+    push       s                               
+    call       t11        printf               
