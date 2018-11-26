@@ -1,4 +1,4 @@
-def sum(n) {
+function sum(n) {
   var s, i;
   s = 0;
   i = 1;

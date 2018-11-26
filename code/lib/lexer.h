@@ -1,11 +1,7 @@
 #ifndef __LEXER_H__
 #define __LEXER_H__
 
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-
-#define SMAX 256
+#include "util.h"
 
 enum { Id, Keyword, Type, Number, Literal, Char };
 

@@ -46,12 +46,14 @@ char *lexScan() {
   int len = p-start;
   strncpy(token, start, len);
   token[len] = '\0';
+  if (isMember(token, "var int char")) type = Type;
   pos = p - lineBegin;
   tokenIdx++;
   return token;
 }
 
 int lex(char *code) {
+  printf("================= lex =================\n");
   lexInit(code);
   while (1) {
     char *tok = lexScan();

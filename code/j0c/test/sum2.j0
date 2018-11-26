@@ -1,4 +1,5 @@
-def sum(n) {
+var sum = function (n) {
+  var s, i;
   s = 0;
   i = 1;
   while (i <= n) {
@@ -7,3 +8,6 @@ def sum(n) {
   }
   return s;
 }
+
+s = sum(10);
+printf("sum=%s\n", s);
