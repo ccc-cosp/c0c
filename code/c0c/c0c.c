@@ -9,7 +9,7 @@ void PARAM() {
 }
 
 // PROG = FUNCTION | DECL
-// FUNCTION = type id (VAR_LIST) BLOCK
+// FUNCTION = type id (PARAM_LIST) BLOCK
 // DECL     = type id (, id)* ;
 void PROG() {
   next();
@@ -18,7 +18,7 @@ void PROG() {
     char *star = "";
     if (isNext("*")) star = skip("*");
     char *id = skipType(Id);
-    if (isNext("(")) { // FUNCTION = type id (ParamList) BLOCK
+    if (isNext("(")) { // FUNCTION = type id (PARAM_LIST) BLOCK
       emit("function", id, type, star);
       skip("(");
       if (!isNext(")")) {
