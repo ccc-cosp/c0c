@@ -8,12 +8,18 @@ void PARAM() {
   vmCode("param", id, type, star);
 }
 
-// PROG = FUNCTION | DECL
+// PROG = INCLUDE | FUNCTION | DECL
 // FUNCTION = type id (PARAM_LIST) BLOCK
 // DECL     = type id (, id)* ;
+// INCLUDE  = #...>
 void PROG() {
   next();
   while (!isEnd()) {
+    if (isNext("#")) { // INCLUDE
+      while (!isNext(">")) next();
+      skip(">");
+      continue;
+    }
     char *type = skipType(Type);
     char *star = "";
     if (isNext("*")) star = skip("*");
@@ -46,5 +52,5 @@ void PROG() {
 }
 
 int main(int argc, char * argv[]) {
-  compileFile(argv[1], "c0");
+  compileFile(argv[1], "c");
 }

@@ -3,7 +3,7 @@
 int labelIdx = 0, tempIdx = 0;
 
 void vmLabel(char *label) {
-  vmEmit("(%s)\n", label);
+  vmEmit("%s:\n", label);
   xLabel(label);
 }
 
@@ -20,6 +20,6 @@ char *vmNextLabel(char *prefix) {
 
 char *vmNextTemp() {
   char name[SMAX];
-  sprintf(name, "$t%d", tempIdx++);
+  sprintf(name, "t%d", tempIdx++);
   return strTableAdd(name);
 }

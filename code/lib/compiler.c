@@ -186,11 +186,11 @@ void compileFile(char *file, char *ext) {
   char cFileName[SMAX], pFileName[SMAX], sFileName[SMAX]; 
 
   sprintf(cFileName, "%s.%s", file, ext);
-  sprintf(pFileName, "%s.p", file);
-  sprintf(sFileName, "%s.s", file);
+  sprintf(pFileName, "%s.p0", file);
+  sprintf(sFileName, "%s.s0", file);
   pFile = fopen(pFileName, "wt");
   sFile = fopen(sFileName, "wt");
-
+  vmCode("file", cFileName, "", "");
   readText(cFileName, code, TMAX);
   puts(code);
   lex(code);
