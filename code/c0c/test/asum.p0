@@ -3,16 +3,14 @@
     param      size       int                  
     local      s          int                  
     local      i          int                  
-    =          t0         0                    
-    =          s          t0                   
-    =          t1         0                    
-    =          i          t1                   
-(WBEGIN2)
-    <          t4         i          size      
-    jnz        WEND3      t4                   
-    []         t5         a          i         
-    +          t6         s          t5        
-    =          s          t6                   
-    jmp        WBEGIN2                         
-(WEND3)
+    =          s          0                    
+    =          i          0                    
+(WBEGIN0)
+    <          t2         i          size      
+    jnz        WEND1      t2                   
+    []         t3         a          i         
+    +          t4         s          t3        
+    =          s          t4                   
+    jmp        WBEGIN0                         
+(WEND1)
     return     s                               

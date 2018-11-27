@@ -4,19 +4,20 @@
 void FUNC() {
   skip("function");
   char *id = skipType(Id);
-  emit("function", id, "", "");
+  vmCode("function", id, "", "");
   skip("(");
   if (!isNext(")")) {
     char *p = skipType(Id);
-    emit("param", p, "", "");
+    vmCode("param", p, "", "");
     while (isNext(",")) {
       skip(",");
       p = skipType(Id);
-      emit("param", p, "", "");
+      vmCode("param", p, "", "");
     }
   }
   skip(")");
   BLOCK(Local);
+  vmCode("fend", id, "", "");
 }
 
 // PROG = FUNCTION | VAR; | STMT

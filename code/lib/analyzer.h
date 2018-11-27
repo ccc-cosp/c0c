@@ -11,8 +11,6 @@
 
 extern char strTable[];
 
-extern char *nextLabel(char *prefix);
-extern char *nextTemp();
 extern int  isNext(char *set);
 extern int  isNextType(int checkType);
 extern char *next();

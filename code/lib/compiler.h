@@ -11,6 +11,7 @@ extern char code[];
 
 extern char *F();
 extern char *E();
+extern char *EXP();
 extern void WHILE();
 extern void IF();
 extern void BLOCK(int scope);

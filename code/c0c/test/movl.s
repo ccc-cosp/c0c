@@ -1,11 +1,11 @@
-	.file	"asum.c"
+	.file	"movl.c"
  # GNU C11 (tdm-1) version 5.1.0 (mingw32)
  #	compiled by GNU C version 5.1.0, GMP version 4.3.2, MPFR version 2.4.2, MPC version 0.8.2
  # GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
  # options passed: 
  # -iprefix C:/Program Files (x86)/CodeBlocks/MinGW/bin/../lib/gcc/mingw32/5.1.0/
- # -D_REENTRANT asum.c -mtune=generic -march=pentiumpro
- # -auxbase-strip asum.s -fverbose-asm
+ # -D_REENTRANT movl.c -mtune=generic -march=pentiumpro
+ # -auxbase-strip movl.s -fverbose-asm
  # options enabled:  -faggressive-loop-optimizations
  # -fasynchronous-unwind-tables -fauto-inc-dec -fchkp-check-incomplete-type
  # -fchkp-check-read -fchkp-check-write -fchkp-instrument-calls
@@ -37,27 +37,17 @@
  # -mpush-args -msahf -mstack-arg-probe -mvzeroupper
 
 	.text
-	.globl	_total
-	.def	_total;	.scl	2;	.type	32;	.endef
-_total:
+	.globl	_f
+	.def	_f;	.scl	2;	.type	32;	.endef
+_f:
 	pushl	%ebp	 #
 	movl	%esp, %ebp	 #,
 	subl	$16, %esp	 #,
-	movl	$0, -4(%ebp)	 #, s
-	movl	$0, -8(%ebp)	 #, i
-	jmp	L2	 #
-L3:
-	movl	-8(%ebp), %eax	 # i, D.1497
-	leal	0(,%eax,4), %edx	 #, D.1497
-	movl	8(%ebp), %eax	 # a, tmp93
-	addl	%edx, %eax	 # D.1497, D.1498
-	movl	(%eax), %eax	 # *_8, D.1499
-	addl	%eax, -4(%ebp)	 # D.1499, s
-L2:
-	movl	-8(%ebp), %eax	 # i, tmp94
-	cmpl	12(%ebp), %eax	 # size, tmp94
-	jl	L3	 #,
-	movl	-4(%ebp), %eax	 # s, D.1499
+	movl	$398723408, -4(%ebp)	 #, t
+	movl	-4(%ebp), %eax	 # t, tmp90
+	imull	8(%ebp), %eax	 # a, tmp89
+	movl	%eax, -8(%ebp)	 # tmp89, s
+	movl	-8(%ebp), %eax	 # s, D.1489
 	leave
 	ret
 	.ident	"GCC: (tdm-1) 5.1.0"

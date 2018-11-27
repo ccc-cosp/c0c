@@ -1,16 +1,16 @@
 #include "compiler.h"
 
+FILE *pFile, *sFile; 
 char code[TMAX];
 char *scopeName[] = {"global", "local", "param", "inner"};
-
 
 // INDEX = id [ E ]
 char *INDEX(char *a) {
   skip("[");
-  char *e = E();
+  char *e = EXP();
   skip("]");
-  char *t = nextTemp();
-  emit("[]", t, a, e);
+  char *t = vmNextTemp();
+  vmCode("[]", t, a, e);
   return t;
 }
 
@@ -21,10 +21,12 @@ char *F() {
     skip("("); // (
     f = E();
     skip(")"); // )
-  } else if (isNextType(Literal) || isNextType(Number)) { // ex: Literal : "hello ....", Number: 347
-    char *constant = next();
-    f = nextTemp();
-    emit("=", f, constant, "");
+  } else if (isNextType(Literal)) { // ex: Literal : "hello ...."
+    char *str = next();
+    f = vmNextLabel("S");
+    vmCode("str", f, str, "");
+  } else if (isNextType(Number)) { // ex: Number: 347
+    f = next();
   } else if (isNextType(Id)) {
     char *id = next();
     if (isNext("(")) { // CALL ex: sum(n)
@@ -46,44 +48,49 @@ char *E() {
   while (isNext("+ - * / & | < > <= >= != ==")) {
     char *op = next();
     char *f2 = F();
-    char *t = nextTemp();
-    emit(op, t, f, f2);
+    char *t = vmNextTemp();
+    vmCode(op, t, f, f2);
     f = t;
   }
   return f;
 }
 
+char *EXP() {
+  tempIdx = 0; // 每個運算式 E 都會從 t0 開始設立臨時變數，這樣才能知道每個函數到底需要多少個臨時變數。
+  E();
+}
+
 // while (E) STMT
 void WHILE() {
-  char *whileBegin = nextLabel("WBEGIN");
-  char *whileEnd = nextLabel("WEND");
-  emitLabel(whileBegin);
+  char *whileBegin = vmNextLabel("WBEGIN");
+  char *whileEnd = vmNextLabel("WEND");
+  vmLabel(whileBegin);
   skip("while");
   skip("(");
-  char *e = E();
-  emit("jnz", whileEnd, e, "");
+  char *e = EXP();
+  vmCode("jnz", whileEnd, e, "");
   skip(")");
   STMT();
-  emit("jmp", whileBegin, "", "");
-  emitLabel(whileEnd);
+  vmCode("jmp", whileBegin, "", "");
+  vmLabel(whileEnd);
 }
 
 // if (E) STMT (else STMT)?
 void IF() {
-  char *elseBegin = nextLabel("ELSE");
-  char *ifEnd = nextLabel("ENDIF");
+  char *elseBegin = vmNextLabel("ELSE");
+  char *ifEnd = vmNextLabel("ENDIF");
   skip("if");
   skip("(");
-  char *e = E();
-  emit("jz", elseBegin, e, "");
+  char *e = EXP();
+  vmCode("jz", elseBegin, e, "");
   skip(")");
   STMT();
-  emit("jmp", ifEnd, "", "");
+  vmCode("jmp", ifEnd, "", "");
   if (isNext("else")) {
     skip("else");
-    emitLabel(elseBegin);
+    vmLabel(elseBegin);
     STMT();
-    emitLabel(ifEnd);
+    vmLabel(ifEnd);
   }
 }
 
@@ -103,8 +110,8 @@ void BLOCK(int scope) {
 // return E;
 void RETURN() {
   skip("return");
-  char *e = E();
-  emit("return", e, "", "");
+  char *e = EXP();
+  vmCode("return", e, "", "");
   skip(";");
 }
 
@@ -113,17 +120,17 @@ void RETURN() {
 char *CALL(char *id) {
   skip("(");
   if (!isNext(")")) {
-    char *e = E();
-    emit("push", e, "", "");
+    char *e = EXP();
+    vmCode("push", e, "", "");
     while (isNext(",")) {
       skip(",");
-      e = E();
-      emit("push", e, "", "");
+      e = EXP();
+      vmCode("push", e, "", "");
     }
   }
   skip(")");
-  char *t = nextTemp();
-  emit("call", t, id, "");
+  char *t = vmNextTemp();
+  vmCode("call", t, id, "");
   return t;
 }
 
@@ -144,8 +151,8 @@ void STMT() {
       CALL(id);
     } else if (isNext("=")) { // ASSIGN: id = E
       skip("=");
-      char *e = E();
-      emit("=", id, e, "");
+      char *e = EXP();
+      vmCode("=", id, e, "");
     }
     skip(";");
   }
@@ -157,13 +164,13 @@ void VAR(int scope) {
   char *star = "";
   if (isNext("*")) star = skip("*");
   char *id = skipType(Id);
-  emit(scopeName[scope], id, type, "");
+  vmCode(scopeName[scope], id, type, "");
   while (isNext(",")) {
     skip(",");
     star = "";
     if (isNext("*")) star = skip("*");
     id = skipType(Id);
-    emit(scopeName[scope], id, type, "");
+    vmCode(scopeName[scope], id, type, "");
   }
   // skip(";");
 }
@@ -176,16 +183,18 @@ void compile(char *code) {
 }
 
 void compileFile(char *file, char *ext) {
-  char cFileName[SMAX], pFileName[SMAX], asmFileName[SMAX]; 
+  char cFileName[SMAX], pFileName[SMAX], sFileName[SMAX]; 
 
   sprintf(cFileName, "%s.%s", file, ext);
-  sprintf(pFileName, "%s.p0", file);
-  sprintf(asmFileName, "%s.o0", file);
+  sprintf(pFileName, "%s.p", file);
+  sprintf(sFileName, "%s.s", file);
   pFile = fopen(pFileName, "wt");
+  sFile = fopen(sFileName, "wt");
 
   readText(cFileName, code, TMAX);
   puts(code);
   lex(code);
   compile(code);
   fclose(pFile);
+  fclose(sFile);
 }
