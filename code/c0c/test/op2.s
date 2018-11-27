@@ -1,11 +1,11 @@
-	.file	"asum.c"
+	.file	"op2.c"
  # GNU C11 (tdm-1) version 5.1.0 (mingw32)
  #	compiled by GNU C version 5.1.0, GMP version 4.3.2, MPFR version 2.4.2, MPC version 0.8.2
  # GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
  # options passed: 
  # -iprefix C:/Program Files (x86)/CodeBlocks/MinGW/bin/../lib/gcc/mingw32/5.1.0/
- # -D_REENTRANT asum.c -mtune=generic -march=pentiumpro
- # -auxbase-strip asum.s -fverbose-asm
+ # -D_REENTRANT op2.c -mtune=generic -march=pentiumpro -auxbase-strip op2.s
+ # -O0 -fverbose-asm
  # options enabled:  -faggressive-loop-optimizations
  # -fasynchronous-unwind-tables -fauto-inc-dec -fchkp-check-incomplete-type
  # -fchkp-check-read -fchkp-check-write -fchkp-instrument-calls
@@ -36,28 +36,30 @@
  # -mieee-fp -mlong-double-80 -mms-bitfields -mno-red-zone -mno-sse4
  # -mpush-args -msahf -mstack-arg-probe -mvzeroupper
 
+
 	.text
-	.globl	_total
-	.def	_total;	.scl	2;	.type	32;	.endef
-_total:
+	.globl	_op
+	.def	_op;	.scl	2;	.type	32;	.endef
+_op:
 	pushl	%ebp	 #
 	movl	%esp, %ebp	 #,
-	subl	$16, %esp	 #,
-	movl	$0, -4(%ebp)	 #, s                s = 0
-	movl	$0, -8(%ebp)	 #, i                i = 0
-	jmp	L2	 #
-L3:                      #                 s = s + a[i]
-	movl	-8(%ebp), %eax	 # i, D.1497       eax = i 
-	leal	0(,%eax,4), %edx	 #, D.1497       edx = a
-	movl	8(%ebp), %eax	 # a, tmp93          eax = size
-	addl	%edx, %eax	 # D.1497, D.1498      eax = a+i
-	movl	(%eax), %eax	 # *_8, D.1499       eax = *(a+i)
-	addl	%eax, -4(%ebp)	 # D.1499, s       s = eax
-L2:
-	movl	-8(%ebp), %eax	 # i, tmp94        i < size
-	cmpl	12(%ebp), %eax	 # size, tmp94
-	jl	L3	 #,
-	movl	-4(%ebp), %eax	 # s, D.1499       return s
-	leave
+	movl	8(%ebp), %eax	 # a, tmp96       eax = a
+	imull	8(%ebp), %eax	 # a, D.1495      eax = eax * a
+	movl	%eax, %edx	 # D.1495, D.1495   edx = eax = a*a
+	movl	%edx, %eax	 # D.1495, tmp97    eax = edx = a*a
+	sall	$4, %eax	 #, tmp98             eax = eax * 16
+	addl	%eax, %edx	 # tmp97, D.1495    edx = eax + a = 17 * a * a
+	movl	12(%ebp), %eax	 # b, tmp99     eax = b
+	imull	8(%ebp), %eax	 # a, D.1495      eax = a * b
+	addl	%edx, %eax	 # D.1495, D.1495   eax = edx + eax = 17*a*a + a*b
+	leal	9(%eax), %ecx	 #, D.1495        ecx = eax + 9 =  17*a*a + a*b + 9
+	movl	12(%ebp), %eax	 # b, tmp100    eax = b
+	imull	12(%ebp), %eax	 # b, D.1495    eax = b * b
+	movl	%eax, %edx	 # D.1495, D.1495   edx = b*b
+	movl	%edx, %eax	 # D.1495, tmp101   eax = b*b
+	addl	%eax, %eax	 # tmp101           eax = b*b*2
+	addl	%edx, %eax	 # D.1495, D.1495   eax = b*b*3
+	addl	%ecx, %eax	 # D.1495, D.1495   eax = eax + ecx =  17*a*a + a*b + 9 + b*b*3
+	popl	%ebp	 #
 	ret
 	.ident	"GCC: (tdm-1) 5.1.0"

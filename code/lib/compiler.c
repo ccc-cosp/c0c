@@ -40,14 +40,14 @@ char *F() {
   return f;
 }
 
-// E = F (op E)*
+// E = F (op F)*
 char *E() {
   char *f = F();
   while (isNext("+ - * / & | < > <= >= != ==")) {
     char *op = next();
-    char *e = E();
+    char *f2 = F();
     char *t = nextTemp();
-    emit(op, t, f, e);
+    emit(op, t, f, f2);
     f = t;
   }
   return f;
