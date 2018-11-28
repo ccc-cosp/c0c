@@ -36,9 +36,12 @@ char *lexScan() {
   } else if (isAlpha(*p) || *p == '_') { // 變數名稱或關鍵字
     while (isAlpha(*p) || isDigit(*p) || *p == '_') p++;
     type = Id;
-  } else if (strchr("<>!=", *p) != NULL) { // < , <=, >, >=, != ==
+  } else if (strchr("<>!=", *p) != NULL) {
     p++;
-    if (*p == '=') p++;  
+    if (*p == '=') p++; // <=, >=, != ==
+  } else if (strchr("+-&|", *p) != NULL) {
+    char op = *p++;
+    if (*p == op) p++;  // ++ -- && ||
   } else {
     p++;
     type = Char;

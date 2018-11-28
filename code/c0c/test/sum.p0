@@ -1,19 +1,18 @@
+    file       test/sum.c                      
     function   sum        int                  
     param      n          int                  
     local      s          int                  
     local      i          int                  
-    =          t0         0                    
+    =          s          0                    
+    =          i          1                    
+WBEGIN0:
+    <=         t0         i          n         
+    jnz        WEND1      t0                   
+    +          t0         s          i         
     =          s          t0                   
-    =          t1         1                    
-    =          i          t1                   
-(WBEGIN2)
-    <=         t4         i          n         
-    jnz        WEND3      t4                   
-    +          t5         s          i         
-    =          s          t5                   
-    =          t6         1                    
-    +          t7         i          t6        
-    =          i          t7                   
-    jmp        WBEGIN2                         
-(WEND3)
+    +          t0         i          1         
+    =          i          t0                   
+    jmp        WBEGIN0                         
+WEND1:
     return     s                               
+    fend       sum                             

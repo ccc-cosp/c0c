@@ -2,21 +2,12 @@
 
 FILE *pFile, *sFile; 
 char code[TMAX];
-char *scopeName[] = {"global", "local", "param", "inner"};
+char Global[] = "global", Local[] = "local", Param[] = "param", Inner[] = "inner";
 
-// INDEX = id [ E ]
-char *INDEX(char *a) {
-  skip("[");
-  char *e = EXP();
-  skip("]");
-  char *t = vmNextTemp();
-  vmCode("[]", t, a, e);
-  return t;
-}
-
-// F = (E) | Number | Literal | Id | CALL | Id [E]
+// F = [&*+-~!]? ((E) | Number | Literal | Id | CALL) [E]*
 char *F() {
-  char *f;
+  char *f, *op0 = NULL;
+  if (isNext("& * + - ~ !")) op0 = next();
   if (isNext("(")) { // '(' E ')'
     skip("("); // (
     f = E();
@@ -27,17 +18,27 @@ char *F() {
     vmCode("str", f, str, "");
   } else if (isNextType(Number)) { // ex: Number: 347
     f = next();
-  } else if (isNextType(Id)) {
+  } else {
     char *id = next();
     if (isNext("(")) { // CALL ex: sum(n)
       f = CALL(id);
-    } else if (isNext("[")) {
-      f = INDEX(id);
     } else { // id
       f = id;
     }
-  } else {
-    error("F(): next error!");
+  }
+  if (op0 != NULL) {
+    char *t = vmNextTemp();
+    if (strcmp(op0, "*") == 0) op0 = "*ptr";
+    vmCode(op0, t, f, "");
+    f = t;
+  }
+  while (isNext("[")) {
+    skip("[");
+    char *e = E();
+    skip("]");
+    char *t = vmNextTemp();
+    vmCode("[]", t, f, e);
+    f = t;
   }
   return f;
 }
@@ -45,7 +46,7 @@ char *F() {
 // E = F (op F)*
 char *E() {
   char *f = F();
-  while (isNext("+ - * / & | < > <= >= != ==")) {
+  while (isNext("+ - * / & | && || < > <= >= != ==")) {
     char *op = next();
     char *f2 = F();
     char *t = vmNextTemp();
@@ -55,6 +56,7 @@ char *E() {
   return f;
 }
 
+// EXP = E
 char *EXP() {
   tempIdx = 0; // 每個運算式 E 都會從 t0 開始設立臨時變數，這樣才能知道每個函數到底需要多少個臨時變數。
   E();
@@ -94,8 +96,8 @@ void IF() {
   }
 }
 
-// BLOCK = { VARLIST STMT* }
-void BLOCK(int scope) {
+// BLOCK = { LIST<VAR> STMT* }
+void BLOCK(char *scope) {
   skip("{");
   while (isNextType(Type)) {
     VAR(scope);
@@ -115,8 +117,7 @@ void RETURN() {
   skip(";");
 }
 
-
-// CALL = id ( ELIST )
+// CALL(id) = id ( LIST<E> )
 char *CALL(char *id) {
   skip("(");
   if (!isNext(")")) {
@@ -134,8 +135,30 @@ char *CALL(char *id) {
   return t;
 }
 
+// ASSIGN(id): id (++|--)? (= E)?
+char *ASSIGN(char *id, char *scope, char *type, char *star) {
+  char *op = "";
+  if (isNext("++ --")) op = next();
+  if (*type != '\0') vmCode(scope, id, type, star);
+  if (isNext("=")) {
+    skip("=");
+    char *e = EXP();
+    vmCode("=", id, e, star);
+  }
+  if (*op != '\0') vmCode(op, id, "", "");
+  return id;
+}
 
-// STMT = WHILE | IF | BLOCK | RETURN | (ASSIGN | CALL);
+// DECL: *? ASSIGN
+char *DECL(char *scope, char *type) {
+  char *star = isNext("*") ? skip("*") : "";
+  char *id = skipType(Id);
+  return ASSIGN(id, scope, type, star);
+}
+
+// STMT = WHILE | IF | BLOCK | RETURN | VAR ; | (ASSIGN | CALL);
+// ASSIGN: id = E
+// CALL  : id (...)
 void STMT() {
   if (isNext("while"))
     WHILE();
@@ -145,34 +168,28 @@ void STMT() {
     BLOCK(Inner);
   else if (isNext("return"))
     RETURN();
-  else {
+  else if (isNextType(Type)) { // VAR ;
+    VAR(Local);
+    skip(";");
+  } else {
     char *id = skipType(Id);
-    if (isNext("(")) { // CALL: id (...)
+    if (isNext("(")) {
       CALL(id);
-    } else if (isNext("=")) { // ASSIGN: id = E
-      skip("=");
-      char *e = EXP();
-      vmCode("=", id, e, "");
+    } else {
+      ASSIGN(id, Local, "", "");
     }
     skip(";");
   }
 }
 
-// VAR = Type idList
-void VAR(int scope) {
-  char *type = skipType(Type); // type = var | char | int
-  char *star = "";
-  if (isNext("*")) star = skip("*");
-  char *id = skipType(Id);
-  vmCode(scopeName[scope], id, type, "");
+// VAR = Type LIST<DECL>
+void VAR(char *scope) {
+  char *type = skipType(Type);
+  DECL(scope, type);
   while (isNext(",")) {
     skip(",");
-    star = "";
-    if (isNext("*")) star = skip("*");
-    id = skipType(Id);
-    vmCode(scopeName[scope], id, type, "");
+    DECL(scope, type);
   }
-  // skip(";");
 }
 
 void compile(char *code) {

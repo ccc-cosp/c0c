@@ -5,7 +5,7 @@ void PARAM() {
   char *star = "";
   if (isNext("*")) star = skip("*");
   char *id = skipType(Id);
-  vmCode("param", id, type, star);
+  vmCode(Param, id, type, star);
 }
 
 // PROG = INCLUDE | FUNCTION | DECL
@@ -38,13 +38,13 @@ void PROG() {
       BLOCK(Local);
       vmCode("fend", id, "", "");
     } else { // DECL = type *? id (, *? id)* ;
-      vmCode("global", id, type, star);
+      vmCode(Global, id, type, star);
       while (isNext(",")) {
         skip(",");
         star = "";
         if (isNext("*")) star = skip("*");
         id = skipType(Id);
-        vmCode("global", id, type, "");
+        vmCode(Global, id, type, star);
       }
       skip(";");
     }

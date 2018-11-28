@@ -1,0 +1,19 @@
+    file       test/sump.c                      
+    function   total      int                  
+    param      a          int        *         
+    param      size       int                  
+    local      s          int                  
+    =          s          0                    
+    local      i          int                  
+    =          i          0                    
+WBEGIN0:
+    <          t0         i          size      
+    jnz        WEND1      t0                   
+    *ptr       t0         a                    
+    +          t1         s          t0        
+    =          s          t1                   
+    ++         a                               
+    jmp        WBEGIN0                         
+WEND1:
+    return     s                               
+    fend       total                           

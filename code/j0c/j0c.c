@@ -8,11 +8,11 @@ void FUNC() {
   skip("(");
   if (!isNext(")")) {
     char *p = skipType(Id);
-    vmCode("param", p, "", "");
+    vmCode(Param, p, "", "");
     while (isNext(",")) {
       skip(",");
       p = skipType(Id);
-      vmCode("param", p, "", "");
+      vmCode(Param, p, "", "");
     }
   }
   skip(")");
@@ -20,16 +20,18 @@ void FUNC() {
   vmCode("fend", id, "", "");
 }
 
-// PROG = FUNCTION | VAR; | STMT
+// PROG = FUNCTION | STMT // VAR; | 
 void PROG() {
   next();
   while (!isEnd()) {
     if (isNext("function"))
       FUNC();
+    /*
     else if (isNext("var")) {
       VAR(Global);
       skip(";");
-    } else
+    } */
+    else
       STMT();
   }
 }

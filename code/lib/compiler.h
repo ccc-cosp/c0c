@@ -5,8 +5,10 @@
 #include "analyzer.h"
 #include "vm.h"
 
-enum { Global, Local, Param, Inner };
-extern char *scopeName[];
+typedef char*(*F0)();
+// enum { Global, Local, Param, Inner };
+// extern char *scopeName[];
+extern char Global[], Local[], Param[], Inner[];
 extern char code[];
 
 extern char *F();
@@ -14,12 +16,12 @@ extern char *E();
 extern char *EXP();
 extern void WHILE();
 extern void IF();
-extern void BLOCK(int scope);
+extern void BLOCK(char *scope);
 extern void RETURN();
 extern void STMT();
-extern void VAR(int scope);
+extern void VAR(char *scope);
 extern char *CALL(char *id);
-extern char *INDEX(char *a);
+// extern void ASSIGN();
 extern void PROG();
 void compile(char *code);
 void compileFile(char *file, char *ext);
