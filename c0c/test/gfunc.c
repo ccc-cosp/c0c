@@ -7,6 +7,7 @@ int sum() {
   i=1;
   while (i <= n) {
     s = s + i;
+    i++;
   }
   return s;
 }

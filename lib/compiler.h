@@ -6,10 +6,10 @@
 #include "vm.h"
 
 typedef char*(*F0)();
-// enum { Global, Local, Param, Inner };
-// extern char *scopeName[];
 extern char Global[], Local[], Param[], Inner[];
 extern char code[];
+extern Pair symLocalList[], symGlobalList[];
+extern Map symLocalMap, symGlobalMap;
 
 extern char *F();
 extern char *E();
@@ -21,7 +21,6 @@ extern void RETURN();
 extern void STMT();
 extern void VAR(char *scope);
 extern char *CALL(char *id);
-// extern void ASSIGN();
 extern void PROG();
 void compile(char *code);
 void compileFile(char *file, char *ext);

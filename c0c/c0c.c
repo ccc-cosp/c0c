@@ -36,7 +36,7 @@ void PROG() {
       }
       skip(")");
       BLOCK(Local);
-      vmCode("fend", id, "", "");
+      vmCode("-function", id, "", "");
     } else { // DECL = type *? id (, *? id)* ;
       vmCode(Global, id, type, star);
       while (isNext(",")) {

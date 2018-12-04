@@ -2,6 +2,7 @@
 #define __X86_H__
 
 #include "strTable.h"
+#include "map.h"
 #include "util.h"
 
 extern FILE *sFile; // x86 組合語言檔案

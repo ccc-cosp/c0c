@@ -14,7 +14,7 @@ char *F() {
     skip(")"); // )
   } else if (isNextType(Literal)) { // ex: Literal : "hello ...."
     char *str = next();
-    f = vmNextLabel("S");
+    f = vmNextLabel("$S");
     vmCode("str", f, str, "");
   } else if (isNextType(Number)) { // ex: Number: 347
     f = next();
@@ -119,19 +119,24 @@ void RETURN() {
 
 // CALL(id) = id ( LIST<E> )
 char *CALL(char *id) {
+  char tname[SMAX];
+  int argIdx = 0;
   skip("(");
   if (!isNext(")")) {
     char *e = EXP();
-    vmCode("push", e, "", "");
+    sprintf(tname, "%d", argIdx++);
+    vmCode("arg", e, tname, "");
     while (isNext(",")) {
       skip(",");
       e = EXP();
-      vmCode("push", e, "", "");
+      sprintf(tname, "%d", argIdx++);
+      vmCode("arg", e, tname, "");
     }
   }
   skip(")");
   char *t = vmNextTemp();
-  vmCode("call", t, id, "");
+  sprintf(tname, "%d", argIdx);
+  vmCode("call", t, id, tname);
   return t;
 }
 
@@ -196,22 +201,25 @@ void compile(char *code) {
   printf("============ compile =============\n");
   lexInit(code);
   strTableInit(strTable);
+  vmInit();
   PROG();
 }
 
 void compileFile(char *file, char *ext) {
-  char cFileName[SMAX], pFileName[SMAX], sFileName[SMAX]; 
+  char cFileName[SMAX], pFileName[SMAX], sFileName[SMAX], path[SMAX]; 
 
   sprintf(cFileName, "%s.%s", file, ext);
+  sprintf(path, "\"%s\"", cFileName);
   sprintf(pFileName, "%s.p0", file);
-  sprintf(sFileName, "%s.s0", file);
+  sprintf(sFileName, "%s0.s", file);
   pFile = fopen(pFileName, "wt");
   sFile = fopen(sFileName, "wt");
-  vmCode("file", cFileName, "", "");
+  vmCode("file", path, "", "");
   readText(cFileName, code, TMAX);
   puts(code);
   lex(code);
   compile(code);
+  vmCode("-file", path, "", "");
   fclose(pFile);
   fclose(sFile);
 }

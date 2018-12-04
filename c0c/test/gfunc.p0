@@ -1,4 +1,4 @@
-    file       test/gfunc.c                      
+    file       "gfunc.c"                       
     global     s          int                  
     global     i          int                  
     global     n          int                  
@@ -10,6 +10,7 @@ WBEGIN0:
     jnz        WEND1      t0                   
     +          t0         s          i         
     =          s          t0                   
+    ++         i                               
     jmp        WBEGIN0                         
 WEND1:
     return     s                               
