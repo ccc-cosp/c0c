@@ -10,7 +10,7 @@
 #define isEnd() (*token == '\0')
 
 extern char strTable[];
-
+extern void scanInit(char *code);
 extern int  isNext(char *set);
 extern int  isNextType(int checkType);
 extern char *next();

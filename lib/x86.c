@@ -1,6 +1,16 @@
 #include "x86.h"
 
-char temp[SMAX];
+// char temp[SMAX];
+
+void xInit(char *file) {
+  char sFileName[SMAX];
+  sprintf(sFileName, "%s0.s", file);
+  sFile = fopen(sFileName, "wt");
+}
+
+void xClose() {
+  fclose(sFile);
+}
 
 void as(char *x, char *rx) {
   if (isdigit(*x))
@@ -36,8 +46,6 @@ void xCode(char *op, char *_d, char *_p1, char *_p2) {
   } else if (strcmp(op, "call") == 0) {
     xEmit("	call %s\n	movl %%eax, %s\n", p1, d);
   } else if (strcmp(op, "arg") == 0) {
-    int argIdx;
-    sscanf(_p1, "%d", &argIdx);
     xEmit("	movl %s, %%eax\n", d);
     xEmit("	movl %%eax, %d(%%esp)\n", argIdx*4);
   } else if (strcmp(op, "str") == 0) {
@@ -96,18 +104,10 @@ void xCode(char *op, char *_d, char *_p1, char *_p2) {
   }
 }
 
-/*
-/*
- 	movl	_a, %eax	 # a, D.1567
-	testl	%eax, %eax	 # D.1567
-	je	L2	 #,
-	movl	_b, %eax	 # b, D.1567
-	testl	%eax, %eax	 # D.1567
-	je	L2	 #,
-	movl	$1, %eax	 #, D.1567
-	jmp	L3	 #
-L2:
-	movl	$0, %eax	 #, D.1567
-L3:
-	movl	%eax, _land	 # D.1567, land
-*/
+void xAsm(char *label, char *op, char *d, char *p1, char *p2) {
+  if (label != NULL) {
+    xLabel(label);
+  } else {
+    xCode(op, d, p1, p2);
+  }
+}

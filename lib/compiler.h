@@ -2,15 +2,22 @@
 #define __COMPILER_H__
 
 #include "util.h"
-#include "analyzer.h"
+#include "scan.h"
 #include "vm.h"
+#include "map.h"
+
+#define SYMMAX 10000
 
 typedef char*(*F0)();
 extern char Global[], Local[], Param[], Inner[];
 extern char code[];
+extern int labelIdx, tempIdx, tempMax; // 臨時變數數量 // argIdx, 
 extern Pair symLocalList[], symGlobalList[];
 extern Map symLocalMap, symGlobalMap;
 
+extern char *nextLabel(char *prefix);
+extern char *nextTemp();
+extern char *typeStar(char *type, char *star);
 extern char *F();
 extern char *E();
 extern char *EXP();

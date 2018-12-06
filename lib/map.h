@@ -3,10 +3,9 @@
 
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
 typedef char* string;
-
-#define size(array) (sizeof(array)/sizeof(array[0]))
 
 typedef struct _Pair {
   char *key;
@@ -23,5 +22,6 @@ extern Map* mapNew(Map *map, Pair *list, int size);
 extern Pair mapAdd(Map *map, char *key, void *value);
 extern int mapFind(Map *map, char *key);
 extern void* mapLookup(Map *map, char *key);
+extern void mapDump(Map *map);
 
 #endif

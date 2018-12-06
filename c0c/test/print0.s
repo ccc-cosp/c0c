@@ -30,13 +30,13 @@ _main:
 S0:
 	.ascii "Hello %d!\n\0"
 	.text
-# arg $S0 0 
+# arg $S0  
 	movl $S0, %eax
 	movl %eax, 0(%esp)
-# arg n 1 
+# arg n  
 	movl _n, %eax
 	movl %eax, 4(%esp)
-# call t0 printf 2
+# call t0 printf 
 	call _printf
 	movl %eax, _t0
 # -function main  

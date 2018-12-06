@@ -5,7 +5,12 @@
 _sum:
 	pushl	%ebp
 	movl	%esp, %ebp
-	subl	$16, %esp
+	subl	$32, %esp
+	movl	$0, -4(%ebp)
+	movl	$1, -8(%ebp)
+	movl	$2, -12(%ebp)
+	movl	$3, -16(%ebp)
+	movl	$4, -20(%ebp)
 	movl	$0, -4(%ebp)
 	movl	$1, -8(%ebp)
 	jmp	L2

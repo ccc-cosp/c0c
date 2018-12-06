@@ -1,6 +1,11 @@
-#include "analyzer.h"
+#include "scan.h"
 
 char strTable[TMAX];
+
+void scanInit(char *code) {
+  lexInit(code);
+  strTableInit(strTable);
+}
 
 int isNext(char *set) {
   return isMember(token, set);

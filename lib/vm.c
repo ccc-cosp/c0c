@@ -1,39 +1,62 @@
 #include "vm.h"
 
-int labelIdx = 0, tempIdx = 0, frameSize = 0;
-Pair symLocalList[10000], symGlobalList[10000];
-Map symLocalMap, symGlobalMap;
-int framePos[1000];
+int vmCodeTop = 0, argIdx = 0;
 
 void vmInit() {
-  mapNew(&symLocalMap, symLocalList, size(symLocalList));
-  mapNew(&symGlobalMap, symGlobalList, size(symGlobalList));
+  vmCodeTop = 0;
 }
 
-void vmLabel(char *label) {
+VmCode *vmLabel(char *label) {
+  VmCode c = { .label = label };
+  vmCodes[vmCodeTop] = c;
+  /*
   vmEmit("%s:\n", label);
   xLabel(label);
+  */
+  return &vmCodes[vmCodeTop++];
 }
 
-void vmCode(char *op, char *d, char *p1, char *p2) {
-  vmEmit("    %-10s %-10s %-10s %-10s\n", op, d, p1, p2);
-  if (strcmp(op, "local") == 0) {
+VmCode *vmCode(char *op, char *d, char *p1, char *p2) {
+  VmCode c = { .op=op, .d=d, .p1=p1, .p2=p2};
+  // vmEmit("    %-10s %-10s %-10s %-10s\n", op, d, p1, p2);
+  /*
+  if (strcmp(op, "global") == 0) {
+    mapAdd(&symGlobalMap, d, p1);
+  } else if (strcmp(op, "local") == 0) {
     framePos[symLocalMap.top] = frameSize;
+    char fpos[SMAX];
+    sprintf(fpos, "%d", frameSize);
+    c.p2 = strTableAdd(fpos);
     mapAdd(&symLocalMap, d, &framePos);
     // symTableAdd(d, "local", frameSize);
     frameSize += 4;
   }
+  */
+  vmCodes[vmCodeTop] = c;
+  /*
   xCode(op, d, p1, p2);
+  if (strcmp(op, "arg") == 0) { argIdx ++; }
+  */
+  return &vmCodes[vmCodeTop++];
 }
 
-char *vmNextLabel(char *prefix) {
-  char name[SMAX];
-  sprintf(name, "%s%d", prefix, labelIdx++);
-  return strTableAdd(name);
+void vmDump() {
+  printf("=============vmDump()==============\n");
+  for (int i=0; i<vmCodeTop; i++) {
+    VmCode *c = &vmCodes[i];
+    if (c->label != NULL)
+      printf("%-10s:\n", c->label);
+    else
+      printf("  %-10s %-10s %-10s %-10s\n", c->op, c->d, c->p1, c->p2);
+  }
 }
 
-char *vmNextTemp() {
-  char name[SMAX];
-  sprintf(name, "t%d", tempIdx++);
-  return strTableAdd(name);
+void vmToAsm(char *file) {
+  xInit(file);
+  printf("=============vmToAsm()==============\n");
+  for (int i=0; i<vmCodeTop; i++) {
+    VmCode *c = &vmCodes[i];
+    xAsm(c->label, c->op, c->d, c->p1, c->p2);
+  }
+  xClose();
 }

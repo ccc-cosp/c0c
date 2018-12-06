@@ -6,16 +6,19 @@
 #include "util.h"
 #include "x86.h"
 
+typedef struct _VmCode {
+  char *label, *op, *d, *p1, *p2; 
+} VmCode;
+
 extern FILE *pFile; // 虛擬碼檔案
-extern int labelIdx, frameSize, tempIdx; // 臨時變數數量
-extern Pair symLocalList[], symGlobalList[];
-extern Map symLocalMap, symGlobalMap;
+extern int vmCodeTop, argIdx;
+extern VmCode vmCodes[10000];
 
 #define vmEmit(...) do { printf( __VA_ARGS__ ); fprintf(pFile, __VA_ARGS__); } while (0)
 extern void vmInit();
-extern void vmLabel(char *label);
-extern void vmCode(char *op, char *d, char *p1, char *p2);
-extern char *vmNextLabel(char *prefix);
-extern char *vmNextTemp();
+extern VmCode *vmLabel(char *label);
+extern VmCode *vmCode(char *op, char *d, char *p1, char *p2);
+extern void vmDump();
+extern void vmToAsm(char *file);
 
 #endif
