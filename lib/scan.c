@@ -1,10 +1,7 @@
 #include "scan.h"
 
-char strTable[TMAX];
-
 void scanInit(char *code) {
   lexInit(code);
-  strTableInit(strTable);
 }
 
 int isNext(char *set) {
@@ -16,8 +13,7 @@ int isNextType(int checkType) {
 }
 
 char *next() {
-  // printf("    token=%-10s tokenIdx=%d\n", token, tokenIdx);
-  char *t = strTableAdd(token);
+  char *t = stAdd(token);
   lexScan();
   return t;
 }

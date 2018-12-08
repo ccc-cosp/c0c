@@ -1,3 +1,5 @@
+int a, b, c;
+
 int sum(int n) {
   int s=0, i=1, j=2, k=3, l=4;
   s = 0;

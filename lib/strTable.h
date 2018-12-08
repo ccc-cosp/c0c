@@ -3,7 +3,8 @@
 
 #include <string.h>
 
-extern char *strTableInit();
-extern char *strTableAdd(char *str);
+#define stPrint(...) ({ char stTemp[SMAX]; sprintf(stTemp, __VA_ARGS__); char *p=stAdd(stTemp); p; })
+extern char *stInit();
+extern char *stAdd(char *str);
 
 #endif

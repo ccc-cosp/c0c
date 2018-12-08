@@ -19,5 +19,4 @@ extern void lexInit();
 extern char *lexScan();
 extern int lex(char *code);
 
-
 #endif

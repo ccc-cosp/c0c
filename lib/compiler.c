@@ -2,36 +2,49 @@
 
 FILE *pFile, *sFile; 
 char code[TMAX];
-char Global[] = "global", Local[] = "local", Param[] = "param", Inner[] = "inner";
-int labelIdx = 0, tempIdx = 0, tempMax = 0; // argIdx = 0, 
-Pair symLocalList[10000], symGlobalList[10000];
-Map symLocalMap, symGlobalMap;
-VmCode vmCodes[10000];
+int labelIdx = 0, tempIdx = 0, tempMax = 0;
 
 char *nextLabel(char *prefix) {
-  char name[SMAX];
-  sprintf(name, "%s%d", prefix, labelIdx++);
-  return strTableAdd(name);
+  return stPrint("%s%d", prefix, labelIdx++);
 }
 
 char *nextTemp() {
-  char name[SMAX];
-  sprintf(name, "t%d", tempIdx++);
-  char *temp = strTableAdd(name);
-  // mapAdd(&symLocalMap, temp, "");
+  char *temp = stPrint("t%d", tempIdx++);
+  if (tempIdx > tempMax) {
+    char *local = stPrint("%d", localTop);
+    vmCode("local", temp, "", local);
+    tempMax = tempIdx;
+  }
   return temp;
 }
 
 char *typeStar(char *type, char *star) {
-  char tstar[SMAX];
-  sprintf(tstar, "%s%s", type, star);
-  return strTableAdd(tstar);
+  return stPrint("%s%s", type, star);
 }
 
-// F = [&*+-~!]? ((E) | Number | Literal | (++|--)? Id (++|--)? | CALL) [E]*
+// P = *? (++|--)? Id (++|--)? | CALL
+char *P() {
+  char *p, *star = NULL, *op1 = NULL, *op2 = NULL;
+  if (isNext("*")) star = next();
+  if (isNext("++ --")) op1 = next();
+  char *id = skipType(Id);
+  if (isNext("(")) { // CALL ex: sum(n)
+    p = CALL(id);
+  } else { // id
+    if (op1 != NULL) vmCode(op1, id, "", "");
+    p = id;
+    if (isNext("++ --")) {
+      op2 = next();
+      vmCode(op2, id, "", "");
+    }
+  }
+  return p;
+}
+
+// F = [&+-~!]? ((E) | Number | Literal | P) [E]*
 char *F() {
   char *f, *id = NULL, *op0 = NULL, *op1 = NULL, *op2 = NULL;
-  if (isNext("& * + - ~ !")) op0 = next();
+  if (isNext("& + - ~ !")) op0 = next();
   if (isNext("(")) { // '(' E ')'
     skip("("); // (
     f = E();
@@ -39,23 +52,14 @@ char *F() {
   } else if (isNextType(Literal)) { // ex: Literal : "hello ...."
     char *str = next();
     f = nextLabel("$S");
-    vmCode("str", f, str, "");
+    vmGlobalCode("str", f, str, "");
   } else if (isNextType(Number)) { // ex: Number: 347
     f = next();
   } else {
-    if (isNext("++ --")) op1 = next();
-    id = next();
-    if (isNext("(")) { // CALL ex: sum(n)
-      f = CALL(id);
-    } else { // id
-      if (op1 != NULL) vmCode(op1, id, "", "");
-      f = id;
-      if (isNext("++ --")) op2 = next();
-    }
+    f = P();
   }
   if (op0 != NULL) {
     char *t = nextTemp();
-    if (strcmp(op0, "*") == 0) op0 = "*ptr";
     vmCode(op0, t, f, "");
     f = t;
   }
@@ -67,7 +71,6 @@ char *F() {
     vmCode("[]", t, f, e);
     f = t;
   }
-  if (op2 != NULL) vmCode(op2, id, "", "");
   return f;
 }
 
@@ -88,7 +91,6 @@ char *E() {
 char *EXP() {
   tempIdx = 0; // 每個運算式 E 都會從 t0 開始設立臨時變數，這樣才能知道每個函數到底需要多少個臨時變數。
   char *e = E();
-  if (tempIdx > tempMax) tempMax = tempIdx;
   return e;
 }
 
@@ -100,7 +102,7 @@ void WHILE() {
   skip("while");
   skip("(");
   char *e = EXP();
-  vmCode("jnz", whileEnd, e, "");
+  vmCode("jz", whileEnd, e, "");
   skip(")");
   STMT();
   vmCode("jmp", whileBegin, "", "");
@@ -118,16 +120,16 @@ void IF() {
   skip(")");
   STMT();
   vmCode("jmp", ifEnd, "", "");
+  vmLabel(elseBegin);
   if (isNext("else")) {
     skip("else");
-    vmLabel(elseBegin);
     STMT();
-    vmLabel(ifEnd);
   }
+  vmLabel(ifEnd);
 }
 
 // BLOCK = { LIST<VAR> STMT* }
-void BLOCK(char *scope) {
+void BLOCK(int scope) {
   skip("{");
   while (isNextType(Type)) {
     VAR(scope);
@@ -166,10 +168,13 @@ char *CALL(char *id) {
 }
 
 // ASSIGN(id): id (++|--)? (= E)?
-char *ASSIGN(char *id, char *scope, char *type) {
+char *ASSIGN(char *id, int scope, char *type) {
   char *op = "";
   if (isNext("++ --")) op = next();
-  if (*type != '\0') vmCode(scope, id, type, "");
+  if (*type != '\0') {
+    char *local = stPrint("%d", localTop);
+    vmCode("local", id, type, local);
+  }
   if (isNext("=")) {
     skip("=");
     char *e = EXP();
@@ -180,11 +185,10 @@ char *ASSIGN(char *id, char *scope, char *type) {
 }
 
 // DECL: *? ASSIGN
-char *DECL(char *scope, char *type) {
+char *DECL(int scope, char *type) {
   char *star = isNext("*") ? skip("*") : "";
   char *id = skipType(Id);
   char *ptype = typeStar(type, star);
-  (strcmp(scope, Global) == 0) ? mapAdd(&symGlobalMap, id, ptype) : mapAdd(&symLocalMap, id, ptype);
   return ASSIGN(id, scope, ptype);
 }
 
@@ -215,7 +219,7 @@ void STMT() {
 }
 
 // VAR = Type LIST<DECL>
-void VAR(char *scope) {
+void VAR(int scope) {
   char *type = skipType(Type);
   DECL(scope, type);
   while (isNext(",")) {
@@ -224,28 +228,29 @@ void VAR(char *scope) {
   }
 }
 
-void compile(char *code) {
+void compile(char *file, char *ext, char *code) {
+  char pFileName[SMAX]; 
   printf("============ compile =============\n");
+  sprintf(pFileName, "%s.p0", file);
+  pFile = fopen(pFileName, "wt");
+  stInit();
   scanInit(code);
-  mapNew(&symGlobalMap, symGlobalList, SYMMAX);
   vmInit();
+  char *path = stPrint("\"%s.%s\"", file, ext);
+  vmGlobalCode("file", path, "", "");
   PROG();
-  vmDump();
+  vmCode("-file", path, "", "");
+  vmDump(vmGlobalCodes, vmGlobalTop);
+  vmDump(vmCodes, vmCodeTop);
+  vmToAsm(file);
+  fclose(pFile);
 }
 
 void compileFile(char *file, char *ext) {
-  char cFileName[SMAX], pFileName[SMAX], path[SMAX]; 
-
+  char cFileName[SMAX]; 
   sprintf(cFileName, "%s.%s", file, ext);
-  sprintf(path, "\"%s\"", cFileName);
-  sprintf(pFileName, "%s.p0", file);
-  pFile = fopen(pFileName, "wt");
-  vmCode("file", path, "", "");
   readText(cFileName, code, TMAX);
   puts(code);
   lex(code);
-  compile(code);
-  vmCode("-file", path, "", "");
-  vmToAsm(file);
-  fclose(pFile);
+  compile(file, ext, code);
 }

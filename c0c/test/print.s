@@ -15,10 +15,17 @@ _main:
 	call	___main
 	movl	$3, _n
 	movl	_n, %eax
+	cmpl	$4, %eax
+	jg	L2
+	movl	$7, %eax
+	jmp	L3
+L2:
+	movl	_n, %eax
 	movl	%eax, 4(%esp)
 	movl	$LC0, (%esp)
 	call	_printf
-	movl	$0, %eax
+	movl	$8, %eax
+L3:
 	leave
 	ret
 	.ident	"GCC: (tdm-1) 5.1.0"

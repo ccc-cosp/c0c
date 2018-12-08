@@ -5,10 +5,10 @@ void PARAM() {
   char *star = "";
   if (isNext("*")) star = skip("*");
   char *id = skipType(Id);
-  vmCode(Param, id, typeStar(type, star), "");
+  vmCode("param", id, typeStar(type, star), "");
 }
 
-// PROG = INCLUDE* DECL* FUNCTION*
+// PROG = (INCLUDE | DECL | FUNCTION)*
 // INCLUDE  = #...>
 // FUNCTION = type id (PARAM_LIST) BLOCK
 // DECL     = type id (, id)* ;
@@ -27,8 +27,7 @@ void PROG() {
     if (isNext("(")) { // FUNCTION = type id (PARAM_LIST) BLOCK
       VmCode *fCode = vmCode("function", id, typeStar(type, star), "");
       tempMax = 0;
-      mapNew(&symLocalMap, symLocalList, SYMMAX);
-      // VmCode *frameCode = vmCode("frame", "", "", "");
+      localTop = 0;
       skip("(");
       if (!isNext(")")) {
         PARAM();
@@ -39,21 +38,17 @@ void PROG() {
       }
       skip(")");
       BLOCK(Local);
-      int frameSize = symLocalMap.top + tempMax;
-      char fsize[SMAX];
-      sprintf(fsize, "%d", frameSize);
-      fCode->p2 = strTableAdd(fsize);
-      mapDump(&symLocalMap);
-      printf("  tempMax=%d\n", tempMax);
+      int frameSize = localTop + tempMax;
+      fCode->p2 = stPrint("%d", frameSize);
       vmCode("-function", id, "", "");
     } else { // DECL = type *? id (, *? id)* ;
-      vmCode(Global, id, type, star);
+      vmGlobalCode("global", id, type, star);
       while (isNext(",")) {
         skip(",");
         star = "";
         if (isNext("*")) star = skip("*");
         id = skipType(Id);
-        vmCode(Global, id, type, star);
+        vmGlobalCode("global", id, type, star);
       }
       skip(";");
     }

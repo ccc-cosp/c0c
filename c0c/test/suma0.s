@@ -1,4 +1,4 @@
-# function total int 3
+# function total int 4
 	.text
 	.globl	_total
 	.def	_total;	.scl	2;	.type	32;	.endef
@@ -31,18 +31,15 @@ _WBEGIN0:
 	movl	_t0, %eax
 	cmpl	%eax, $0
 	jne	_WEND1
-# + t0 s a
+# [] t0 a i
+ --- not handle yet ! ----
+# + t1 s t0
 	movl	_s, %eax
-	addl	_a, %eax
-	movl %eax, _t0
-# = s t0 
-	movl	_t0, %ebx
+	addl	_t0, %eax
+	movl %eax, _t1
+# = s t1 
+	movl	_t1, %ebx
 	movl	%ebx, _s
-# ++ a  
-# + _a _a 1
-	movl	_a, %eax
-	addl	$1, %eax
-	movl %eax, _a
 # jmp WBEGIN0  
 	jmp	_WBEGIN0
 _WEND1:
@@ -52,6 +49,6 @@ _WEND1:
 # -function total  
 	leave
 	ret
-# -file "sump.c"  
+# -file "suma.c"  
 	.ident	"c0c: 0.0.1"
 	.def	_puts;	.scl	2;	.type	32;	.endef

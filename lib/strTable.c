@@ -1,16 +1,13 @@
 
 #include "strTable.h"
 
-char *strTable, *strTableEnd;
-int maxLen;
+char strTable[1000*1000], *strTableEnd = strTable;
 
-char *strTableInit(char *pStrTable, int pMaxLen) {
-  strTable = pStrTable;
-  maxLen = pMaxLen;
+char *stInit() {
   strTableEnd = strTable;
 }
 
-char *strTableAdd(char *str) {
+char *stAdd(char *str) {
   char *strPtr = strTableEnd;
   strcpy(strTableEnd, str);
   strTableEnd += (strlen(str)+1);
