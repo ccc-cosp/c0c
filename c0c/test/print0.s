@@ -59,10 +59,6 @@ _main:
 # call t0 printf 
 	call _printf
 	movl %eax, _t0
-# return 7  
-	movl $7, %eax
-	leave
-	ret
 # jmp ENDIF1  
 	jmp	_ENDIF1
 # label ELSE0  

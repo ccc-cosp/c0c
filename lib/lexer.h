@@ -3,7 +3,7 @@
 
 #include "util.h"
 
-enum { Id, Keyword, Type, Number, Literal, Char };
+enum { Id, Keyword, Type, Number, Literal, Char, End };
 
 extern char *typeName[];
 

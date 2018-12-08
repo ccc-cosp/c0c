@@ -5,7 +5,7 @@
 #include "strTable.h"
 #include "lexer.h"
 
-#define isEnd() (*token == '\0')
+#define isEnd() (type == End)
 
 extern void scanInit(char *code);
 extern int  isNext(char *set);
