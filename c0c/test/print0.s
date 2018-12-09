@@ -27,7 +27,7 @@ S3:
 S4:
 	.ascii "Hello %d!\n\0"
 	.text
-# function main int 2
+# function main int 1
 	.text
 	.globl	_main
 	.def	_main;	.scl	2;	.type	32;	.endef

@@ -5,15 +5,10 @@
 #include "scan.h"
 #include "vm.h"
 
-#define SYMMAX 10000
-
 enum {Global, Local, Inner};
 typedef char*(*F0)();
 extern char code[];
-extern int labelIdx, tempIdx, tempMax; // 臨時變數數量
 
-extern char *nextLabel(char *prefix);
-extern char *nextTemp();
 extern char *typeStar(char *type, char *star);
 extern char *F();
 extern char *E();

@@ -21,6 +21,7 @@ void as(char *x, char *rx) {
 
 // Intel 指令集參考 -- https://web.itu.edu.tr/kesgin/mul06/intel/index.html
 // https://www.aldeid.com/wiki/X86-assembly/Instructions
+// 注意: GNU 語法是目標在後的，所以 cmpl %eax, %ebx 會造成 (%ebx-%eax) 狀況的旗標改變。
 void xCode(char *op, char *_d, char *_p1, char *_p2) {
   char d[SMAX], p1[SMAX], p2[SMAX];
   as(_d, d); as(_p1, p1); as(_p2, p2);
@@ -90,14 +91,13 @@ void xCode(char *op, char *_d, char *_p1, char *_p2) {
     }
     xEmit("	movl %%eax, %s\n", d);
   } else if (isMember(op, "< > == != >= <=")) {
-    // logical operator : 這在 x86 必須用跳躍指令處理 (參考程式最後的註解)，似乎如果有內建的 a lop b 就可以加速很多！
     // http://www.fermimn.gov.it/linux/quarta/x86/cmp.htm
     // CMP subtracts the second operand from the first but, unlike the SUB instruction, does not store the result; only the flags are changed.
     // CMP is typically used in conjunction with conditional jumps and the SETcc instruction. 
     // https://c9x.me/x86/html/file_module_x86_id_288.html (注意有號數和無號數的比較方法是不同的)
     // The terms "above" and "below" are associated with the CF flag and refer to the relationship between two unsigned integer values. 
     // The terms "greater" and "less" are associated with the SF and OF flags and refer to the relationship between two signed integer values.
-    xEmit("	movl %s, %%eax\n	movl %s, %%ebx\n	cmpl %%ebx, %%eax\n", p1, p2); // cmpl %%ebx, %%eax 才是 eax-ebx
+    xEmit("	movl %s, %%eax\n	movl %s, %%ebx\n	cmpl %%ebx, %%eax\n", p1, p2); // cmpl %%ebx, %%eax 是 eax-ebx
     if (strcmp(op, "==")==0) xEmit("	sete %%al");
     if (strcmp(op, "!=")==0) xEmit("	setne %%al");
     if (strcmp(op, "<")==0) xEmit("	setl %%al");

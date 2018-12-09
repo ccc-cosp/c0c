@@ -21,7 +21,7 @@
 S2:
 	.ascii "s=%d\n\0"
 	.text
-# function sum int 2
+# function sum int 1
 	.text
 	.globl	_sum
 	.def	_sum;	.scl	2;	.type	32;	.endef
@@ -77,7 +77,7 @@ _WEND1:
 	movl $0, %eax
 	leave
 	ret
-# function main int 2
+# function main int 1
 	.text
 	.globl	_main
 	.def	_main;	.scl	2;	.type	32;	.endef

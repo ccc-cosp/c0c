@@ -25,9 +25,7 @@ void PROG() {
     if (isNext("*")) star = skip("*");
     char *id = skipType(Id);
     if (isNext("(")) { // FUNCTION = type id (PARAM_LIST) BLOCK
-      VmCode *fCode = vmCode("function", id, typeStar(type, star), "");
-      tempMax = 0;
-      localTop = 0;
+      vmCode("function", id, typeStar(type, star), "");
       skip("(");
       if (!isNext(")")) {
         PARAM();
@@ -38,17 +36,15 @@ void PROG() {
       }
       skip(")");
       BLOCK(Local);
-      int frameSize = localTop + tempMax;
-      fCode->p2 = stPrint("%d", frameSize);
       vmCode("-function", id, "", "");
     } else { // DECL = type *? id (, *? id)* ;
-      vmGlobalCode("global", id, type, star);
+      vmGlobal("global", id, typeStar(type, star), "");
       while (isNext(",")) {
         skip(",");
         star = "";
         if (isNext("*")) star = skip("*");
         id = skipType(Id);
-        vmGlobalCode("global", id, type, star);
+        vmGlobal("global", id, typeStar(type, star), "");
       }
       skip(";");
     }

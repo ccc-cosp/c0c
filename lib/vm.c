@@ -1,7 +1,9 @@
 #include "vm.h"
 
-int vmCodeTop = 0, argIdx = 0, localTop = 0, vmGlobalTop = 0;
-VmCode vmCodes[10000], vmGlobalCodes[1000];
+int localTop = 0, tempTop = 0;
+int argIdx = 0, labelIdx = 0, tempIdx = 0;
+int vmCodeTop = 0, vmGlobalTop = 0;
+VmCode vmCodes[10000], vmGlobals[1000], *fCode = NULL;
 
 void vmInit() {
   vmCodeTop = 0;
@@ -10,20 +12,42 @@ void vmInit() {
 
 VmCode *vmCode(char *op, char *d, char *p1, char *p2) {
   VmCode c = { .op=op, .d=d, .p1=p1, .p2=p2 };
-  if (strcmp(op, "local")==0) localTop++;
   vmCodes[vmCodeTop] = c;
-  return &vmCodes[vmCodeTop++];
+  VmCode *pCode = &vmCodes[vmCodeTop++];
+  if (strcmp(op, "function")==0) {
+    localTop = 0;
+    tempTop = 0;
+    fCode = pCode;
+  }
+  if (strcmp(op, "local")==0) localTop++;
+  if (strcmp(op, "-function")==0) {
+    fCode->p2 = stPrint("%d", localTop);
+  }
+  return pCode;
 }
 
 VmCode *vmLabel(char *label) {
-  printf("--- vmLabel:%s\n", label);
   return vmCode("label", label, "", "");
 }
 
-VmCode *vmGlobalCode(char *op, char *d, char *p1, char *p2) {
+VmCode *vmGlobal(char *op, char *d, char *p1, char *p2) {
   VmCode c = { .op=op, .d=d, .p1=p1, .p2=p2 };
-  vmGlobalCodes[vmGlobalTop] = c;
-  return &vmGlobalCodes[vmGlobalTop++];
+  vmGlobals[vmGlobalTop] = c;
+  return &vmGlobals[vmGlobalTop++];
+}
+
+char *vmNextLabel(char *prefix) {
+  return stPrint("%s%d", prefix, labelIdx++);
+}
+
+char *vmNextTemp() {
+  char *temp = stPrint("t%d", tempIdx++);
+  if (tempIdx > tempTop) {
+    char *local = stPrint("%d", localTop);
+    vmCode("local", temp, "", local);
+    tempTop = tempIdx;
+  }
+  return temp;
 }
 
 void vmDump(VmCode *codes, int top) {
@@ -38,7 +62,7 @@ void vmToAsm(char *file) {
   xInit(file);
   printf("=============vmToAsm()==============\n");
   for (int i=0; i<vmGlobalTop; i++) {
-    VmCode *c = &vmGlobalCodes[i];
+    VmCode *c = &vmGlobals[i];
     xAsm(c->op, c->d, c->p1, c->p2);
   }
   for (int i=0; i<vmCodeTop; i++) {

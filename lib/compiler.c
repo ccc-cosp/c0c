@@ -2,21 +2,6 @@
 
 FILE *pFile, *sFile; 
 char code[TMAX];
-int labelIdx = 0, tempIdx = 0, tempMax = 0;
-
-char *nextLabel(char *prefix) {
-  return stPrint("%s%d", prefix, labelIdx++);
-}
-
-char *nextTemp() {
-  char *temp = stPrint("t%d", tempIdx++);
-  if (tempIdx > tempMax) {
-    char *local = stPrint("%d", localTop);
-    vmCode("local", temp, "", local);
-    tempMax = tempIdx;
-  }
-  return temp;
-}
 
 char *typeStar(char *type, char *star) {
   return stPrint("%s%s", type, star);
@@ -51,15 +36,15 @@ char *F() {
     skip(")"); // )
   } else if (isNextType(Literal)) { // ex: Literal : "hello ...."
     char *str = next();
-    f = nextLabel("$S");
-    vmGlobalCode("str", f, str, "");
+    f = vmNextLabel("$S");
+    vmGlobal("str", f, str, "");
   } else if (isNextType(Number)) { // ex: Number: 347
     f = next();
   } else {
     f = P();
   }
   if (op0 != NULL) {
-    char *t = nextTemp();
+    char *t = vmNextTemp();
     vmCode(op0, t, f, "");
     f = t;
   }
@@ -67,7 +52,7 @@ char *F() {
     skip("[");
     char *e = E();
     skip("]");
-    char *t = nextTemp();
+    char *t = vmNextTemp();
     vmCode("[]", t, f, e);
     f = t;
   }
@@ -80,7 +65,7 @@ char *E() {
   while (isNext("+ - * / & | && || < > <= >= != ==")) {
     char *op = next();
     char *f2 = F();
-    char *t = nextTemp();
+    char *t = vmNextTemp();
     vmCode(op, t, f, f2);
     f = t;
   }
@@ -96,8 +81,8 @@ char *EXP() {
 
 // while (E) STMT
 void WHILE() {
-  char *whileBegin = nextLabel("WBEGIN");
-  char *whileEnd = nextLabel("WEND");
+  char *whileBegin = vmNextLabel("WBEGIN");
+  char *whileEnd = vmNextLabel("WEND");
   vmLabel(whileBegin);
   skip("while");
   skip("(");
@@ -111,8 +96,8 @@ void WHILE() {
 
 // if (E) STMT (else STMT)?
 void IF() {
-  char *elseBegin = nextLabel("ELSE");
-  char *ifEnd = nextLabel("ENDIF");
+  char *elseBegin = vmNextLabel("ELSE");
+  char *ifEnd = vmNextLabel("ENDIF");
   skip("if");
   skip("(");
   char *e = EXP();
@@ -162,7 +147,7 @@ char *CALL(char *id) {
     }
   }
   skip(")");
-  char *t = nextTemp();
+  char *t = vmNextTemp();
   vmCode("call", t, id, "");
   return t;
 }
@@ -237,10 +222,10 @@ void compile(char *file, char *ext, char *code) {
   scanInit(code);
   vmInit();
   char *path = stPrint("\"%s.%s\"", file, ext);
-  vmGlobalCode("file", path, "", "");
+  vmGlobal("file", path, "", "");
   PROG();
   vmCode("-file", path, "", "");
-  vmDump(vmGlobalCodes, vmGlobalTop);
+  vmDump(vmGlobals, vmGlobalTop);
   vmDump(vmCodes, vmCodeTop);
   vmToAsm(file);
   fclose(pFile);
