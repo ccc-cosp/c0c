@@ -9,9 +9,9 @@ void as(char *x, char *rx) {
   } else if (*x == 'L') { // Local
     sscanf(x, "L%d", &i);
     sprintf(rx, "-%d(%%ebp)", (i+1)*4);
-  } else if (*x == 'P') { // Param
+  } else if (*x == 'P') { // Param 參考: https://eli.thegreenplace.net/2011/02/04/where-the-top-of-the-stack-is-on-x86
     sscanf(x, "P%d", &i);
-    sprintf(rx, "%d(%%ebp)", i*4);
+    sprintf(rx, "%d(%%ebp)", (i+2)*4); // 0: saved ebp, 1: return address, 2: 第一個參數
   } else { // LABEL, ....
     sprintf(rx, "%s", x);
   }
@@ -58,7 +58,7 @@ void xCode(char *op, char *_d, char *_p1, char *_p2) {
   } else if (strcmp(op, "function")==0) {
     xEmit("	.text\n	.globl	_%s\n	.def	%s;	.scl	2;	.type	32;	.endef\n_%s:\n", d, d, d, d);
     xEmit("	pushl	%%ebp\n	movl	%%esp, %%ebp\n");
-    xEmit("	andl	$-16, %%esp\n	subl	$%d, %%esp\n", 32); // ((d+15)/16)*16
+    xEmit("	andl	$-16, %%esp\n	subl	$%d, %%esp\n", 48); // ((d+15)/16)*16
     if (strcmp(d, "main") == 0) { xEmit("	call	___main\n"); }
   } else if (strcmp(op, "return") == 0) {
     xEmit("	movl %s, %%eax\n	leave\n	ret\n", d);

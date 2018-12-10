@@ -47,6 +47,7 @@ VmCode *vmCode(char *op, char *d, char *p1, char *p2) {
   if (strcmp(op, "function")==0) {
     symLocal.top =localTop = paramTop = tempTop = 0;
     fCode = c;
+    mapAdd(&symGlobal, d, c);
   } else if (strcmp(op, "label")==0) {
   } else if (strcmp(op, "param")==0) {
     c->_p2 = stPrint("P%d", paramTop++);
