@@ -28,7 +28,7 @@ void xCode(char *op, char *_d, char *_p1, char *_p2) {
   } else if (strcmp(op, "file") == 0) {
     xEmit("	.file %s\n", d);
     xEmit("	.def	___main;	.scl	2;	.type	32;	.endef\n");
-    xEmit("	.comm	_t0, 4, 2\n	.comm	_t1, 4, 2\n	.comm	_t2, 4, 2\n	.comm	_t3, 4, 2\n	.comm	_t4, 4, 2\n	.comm	_t5, 4, 2\n	.comm	_t6, 4, 2\n	.comm	_t7, 4, 2\n	.comm	_t8, 4, 2\n");
+    // xEmit("	.comm	_t0, 4, 2\n	.comm	_t1, 4, 2\n	.comm	_t2, 4, 2\n	.comm	_t3, 4, 2\n	.comm	_t4, 4, 2\n	.comm	_t5, 4, 2\n	.comm	_t6, 4, 2\n	.comm	_t7, 4, 2\n	.comm	_t8, 4, 2\n");
   } else if (strcmp(op, "-file") == 0) {
     xEmit("	.ident	\"c0c: 0.0.1\"\n	.def	_puts;	.scl	2;	.type	32;	.endef\n");
   } else if (strcmp(op, "global") == 0) {
@@ -58,7 +58,10 @@ void xCode(char *op, char *_d, char *_p1, char *_p2) {
   } else if (strcmp(op, "function")==0) {
     xEmit("	.text\n	.globl	_%s\n	.def	%s;	.scl	2;	.type	32;	.endef\n_%s:\n", d, d, d, d);
     xEmit("	pushl	%%ebp\n	movl	%%esp, %%ebp\n");
-    xEmit("	andl	$-16, %%esp\n	subl	$%d, %%esp\n", 48); // ((d+15)/16)*16
+    int frameSize = atoi(_p2);
+    xEmit("	subl	$%d, %%esp\n", frameSize*4);
+    // 加少一點 (8) 不行，會掛掉？為何？ 按理講應該只需要加 saved ebp 的 4 byte 就行了阿?
+    // xEmit("	andl	$-16, %%esp\n	subl	$%d, %%esp\n", 48); // ((d+15)/16)*16
     if (strcmp(d, "main") == 0) { xEmit("	call	___main\n"); }
   } else if (strcmp(op, "return") == 0) {
     xEmit("	movl %s, %%eax\n	leave\n	ret\n", d);

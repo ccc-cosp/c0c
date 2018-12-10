@@ -1,6 +1,6 @@
 #include "vm.h"
 
-int localTop = 0, paramTop = 0, tempTop = 0;
+int argTop = 0, localTop = 0, paramTop = 0, tempTop = 0;
 int argIdx = 0, labelIdx = 0, tempIdx = 0;
 int vmCodeTop = 0, vmGlobalTop = 0;
 VmCode vmCodes[CODEMAX], vmGlobals[CODEMAX], *fCode = NULL;
@@ -45,7 +45,7 @@ VmCode *vmCode(char *op, char *d, char *p1, char *p2) {
   vmCodes[vmCodeTop] = vmCodeNew(op, d, p1, p2);
   VmCode *c = &vmCodes[vmCodeTop++];
   if (strcmp(op, "function")==0) {
-    symLocal.top =localTop = paramTop = tempTop = 0;
+    symLocal.top = localTop = paramTop = tempTop = argTop = 0;
     fCode = c;
     mapAdd(&symGlobal, d, c);
   } else if (strcmp(op, "label")==0) {
@@ -56,11 +56,14 @@ VmCode *vmCode(char *op, char *d, char *p1, char *p2) {
     c->_p2 = stPrint("L%d", localTop++);
     mapAdd(&symLocal, d, c);
   } else if (strcmp(op, "-function")==0) {
-    fCode->_p2 = stPrint("%d", localTop);
+    int argSize = argTop + 1; // +1 存放 return address
+    int frameSize = MAX(localTop, argSize) + 1; // +1 存放 saved ebp
+    fCode->_p2 = stPrint("%d", frameSize);
   } else if (strcmp(op, "call")==0) {
     argIdx = 0;
   } else if (strcmp(op, "arg")==0) {
     c->_p2 = stPrint("%d", argIdx++);
+    if (argIdx > argTop) argTop = argIdx;
   } 
   return c;
 }
@@ -96,7 +99,7 @@ void vmDump(VmCode *codes, int top) {
   printf("=============vmDump()==============\n");
   for (int i=0; i<top; i++) {
     VmCode *c = &codes[i];
-    printf("%-10s %-10s %-10s %-10s # %-10s %-10s %-10s\n", c->op, c->d, c->p1, c->p2, c->_d, c->_p1, c->_p2);
+    printf("%-8s %-8s %-8s %-8s # %-8s %-8s %-8s\n", c->op, c->d, c->p1, c->p2, c->_d, c->_p1, c->_p2);
   }
 }
 
@@ -107,7 +110,7 @@ void asmInit(char *file) {
 }
 
 void asmCode(VmCode *c) {
-  asmEmit("\n#  %s %s %s %s\n", c->op, c->d, c->p1, c->p2);
+  asmEmit("\n# %-8s %-8s %-8s %-8s # %-8s %-8s %-8s\n", c->op, c->d, c->p1, c->p2, c->_d, c->_p1, c->_p2);
   xCode(c->op, c->_d, c->_p1, c->_p2);
 }
 

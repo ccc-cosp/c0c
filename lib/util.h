@@ -9,5 +9,6 @@
 #define TMAX (1024*1024)    // 長字串最大長度
 extern int readText(char *fileName, char *text, int size);
 extern int isMember(char *token, char *set);
+#define MAX(a,b) (((a)>(b)) ? (a) : (b))
 
 #endif
