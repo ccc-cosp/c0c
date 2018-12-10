@@ -9,7 +9,7 @@ extern char *typeName[];
 
 extern char token[];
 extern int line, pos, type, tokenIdx;
-extern char *start;
+extern char *start, *lineBegin;
 
 #define isDigit(ch) ((ch) >= '0' && (ch) <='9')
 

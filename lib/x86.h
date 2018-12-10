@@ -1,16 +1,18 @@
 #ifndef __X86_H__
 #define __X86_H__
 
+#include <stdlib.h>
 #include "strTable.h"
 #include "util.h"
+// #include "vm.h"
 
-extern FILE *sFile; // x86 組合語言檔案
-extern int argIdx;
 
-#define xEmit(...) do { fprintf(sFile, __VA_ARGS__); } while (0)
+// extern int argIdx;
 
-extern void xInit(char *file);
-extern void xClose();
-extern void xAsm(char *op, char *d, char *p1, char *p2);
+extern FILE *sFile;
+
+#define xEmit(...) do { printf(__VA_ARGS__); fprintf(sFile, __VA_ARGS__); } while (0)
+
+extern void xCode(char *op, char *_d, char *_p1, char *_p2);
 
 #endif

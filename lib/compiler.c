@@ -36,7 +36,7 @@ char *F() {
     skip(")"); // )
   } else if (isNextType(Literal)) { // ex: Literal : "hello ...."
     char *str = next();
-    f = vmNextLabel("$S");
+    f = vmNextLabel("Str");
     vmGlobal("str", f, str, "");
   } else if (isNextType(Number)) { // ex: Number: 347
     f = next();
@@ -156,10 +156,7 @@ char *CALL(char *id) {
 char *ASSIGN(char *id, int scope, char *type) {
   char *op = "";
   if (isNext("++ --")) op = next();
-  if (*type != '\0') {
-    char *local = stPrint("%d", localTop);
-    vmCode("local", id, type, local);
-  }
+  if (*type != '\0') vmCode("local", id, type, "");
   if (isNext("=")) {
     skip("=");
     char *e = EXP();
