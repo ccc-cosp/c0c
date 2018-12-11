@@ -9,7 +9,7 @@
 
 typedef struct _VmCode {
   char *op, *d, *p1, *p2;
-  char *_d, *_p1, *_p2; 
+  char *_d, *_p1, *_p2, *x;
 } VmCode;
 
 extern FILE *pFile; // 虛擬碼檔案

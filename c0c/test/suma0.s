@@ -1,54 +1,64 @@
-# function total int 4
+# extern   printf                     # printf                     #         
+# file     "suma.c"                   # "suma.c"                   #         
+	.file "suma.c"
+	.def	___main;	.scl	2;	.type	32;	.endef
+# function total    int               # total    int               # 5       
 	.text
 	.globl	_total
-	.def	_total;	.scl	2;	.type	32;	.endef
+	.def	total;	.scl	2;	.type	32;	.endef
 _total:
 	pushl	%ebp
 	movl	%esp, %ebp
-	andl	$-16, %esp
-	subl	$32, %esp
-# param a int* 
- --- not handle yet ! ----
-# param size int 
- --- not handle yet ! ----
-# local s int 
-# = s 0 
+	subl	$20, %esp
+# param    a        int*              # a        int*              # P0      
+# param    size     int               # size     int               # P1      
+# local    s        int               # s        int               # L0      
+# =        s        0                 # L0       0                 #         
 	movl	$0, %ebx
-	movl	%ebx, _s
-# local i int 
-# = i 0 
+	movl	%ebx, -4(%ebp)
+# local    i        int               # i        int               # L1      
+# =        i        0                 # L1       0                 #         
 	movl	$0, %ebx
-	movl	%ebx, _i
+	movl	%ebx, -8(%ebp)
+# label    _WBEGIN0                   # _WBEGIN0                   #         
 _WBEGIN0:
-# < t0 i size
-	movl _i, %eax
-	movl _size, %ebx
-	cmpl %eax, %ebx
+# local    t0                         # t0                         # L2      
+# <        t0       i        size     # L2       L1       P1       #         
+	movl -8(%ebp), %eax
+	movl 12(%ebp), %ebx
+	cmpl %ebx, %eax
 	setl %al
-	movzbl	%al, %eax
-	movl	%eax, _t0
-# jnz WEND1 t0 
-	movl	_t0, %eax
-	cmpl	%eax, $0
-	jne	_WEND1
-# [] t0 a i
- --- not handle yet ! ----
-# + t1 s t0
-	movl	_s, %eax
-	addl	_t0, %eax
-	movl %eax, _t1
-# = s t1 
-	movl	_t1, %ebx
-	movl	%ebx, _s
-# jmp WBEGIN0  
+	movsbl	%al, %eax
+	movl	%eax, -12(%ebp)
+# jz       _WEND1   t0                # _WEND1   L2                #         
+	movl	-12(%ebp), %eax
+	cmpl	$0, %eax
+	je	_WEND1
+# []       t0       a        i        # L2       P0       L1       # int*    
+	movl	8(%ebp), %eax
+	addl	-8(%ebp), %eax
+	shll	$2, %eax
+	movl %eax, -12(%ebp)
+# local    t1                         # t1                         # L3      
+# +        t1       s        t0       # L3       L0       L2       #         
+	movl	-4(%ebp), %eax
+	addl	-12(%ebp), %eax
+	movl %eax, -16(%ebp)
+# =        s        t1                # L0       L3                #         
+	movl	-16(%ebp), %ebx
+	movl	%ebx, -4(%ebp)
+# jmp      _WBEGIN0                   # _WBEGIN0                   #         
 	jmp	_WBEGIN0
+# label    _WEND1                     # _WEND1                     #         
 _WEND1:
-# return s  
-	movl _s, %eax
-	ret
-# -function total  
+# return   s                          # L0                         #         
+	movl -4(%ebp), %eax
 	leave
 	ret
-# -file "suma.c"  
+# -function total                      # total                      #         
+	movl $0, %eax
+	leave
+	ret
+# -file    "suma.c"                   # "suma.c"                   #         
 	.ident	"c0c: 0.0.1"
 	.def	_puts;	.scl	2;	.type	32;	.endef

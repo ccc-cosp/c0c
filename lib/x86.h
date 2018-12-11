@@ -11,8 +11,8 @@
 
 extern FILE *sFile;
 
-#define xEmit(...) do { printf(__VA_ARGS__); fprintf(sFile, __VA_ARGS__); } while (0)
+#define xEmit(...) do { fprintf(sFile, __VA_ARGS__); } while (0)
 
-extern void xCode(char *op, char *_d, char *_p1, char *_p2);
+extern void xCode(char *op, char *_d, char *_p1, char *_p2, char *x);
 
 #endif

@@ -20,7 +20,7 @@ void as(char *x, char *rx) {
 // Intel 指令集參考 -- https://web.itu.edu.tr/kesgin/mul06/intel/index.html
 // https://www.aldeid.com/wiki/X86-assembly/Instructions
 // 注意: GNU 語法是目標在後的，所以 cmpl %eax, %ebx 會造成 (%ebx-%eax) 狀況的旗標改變。
-void xCode(char *op, char *_d, char *_p1, char *_p2) {
+void xCode(char *op, char *_d, char *_p1, char *_p2, char *x) {
   char d[SMAX], p1[SMAX], p2[SMAX];
   as(_d, d); as(_p1, p1); as(_p2, p2);
   if (strcmp(op, "label") == 0) {
@@ -38,7 +38,7 @@ void xCode(char *op, char *_d, char *_p1, char *_p2) {
   } else if (strcmp(op, "call") == 0) {
     xEmit("	call %s\n	movl %%eax, %s\n", p1, d);
   } else if (strcmp(op, "arg") == 0) {
-    int argIdx = atoi(_p2);
+    int argIdx = atoi(x);
     xEmit("	movl %s, %%eax\n", d);
     xEmit("	movl %%eax, %d(%%esp)\n", argIdx*4);
   } else if (strcmp(op, "str") == 0) {
@@ -50,18 +50,18 @@ void xCode(char *op, char *_d, char *_p1, char *_p2) {
   } else if (strcmp(op, "jnz") == 0) {
     xEmit("	movl	%s, %%eax\n	cmpl	$0, %%eax\n	jne	%s\n", p1, d);
   } else if (strcmp(op, "++")==0) {
-    xCode("+", d, d, "1");
+    char *sizeStr = (strcmp(x, "char*") == 0) ? "1" : "4";
+    xCode("+", d, d, sizeStr, x);
   } else if (strcmp(op, "--")==0) {
-    xCode("-", d, d, "1");
+    char *sizeStr = (strcmp(x, "char*") == 0) ? "1" : "4";
+    xCode("-", d, d, sizeStr, x);
   } else if (*op=='=') {
     xEmit("	movl	%s, %%ebx\n	movl	%%ebx, %s\n", p1, d);
   } else if (strcmp(op, "function")==0) {
     xEmit("	.text\n	.globl	_%s\n	.def	%s;	.scl	2;	.type	32;	.endef\n_%s:\n", d, d, d, d);
     xEmit("	pushl	%%ebp\n	movl	%%esp, %%ebp\n");
-    int frameSize = atoi(_p2);
+    int frameSize = atoi(x);
     xEmit("	subl	$%d, %%esp\n", frameSize*4);
-    // 加少一點 (8) 不行，會掛掉？為何？ 按理講應該只需要加 saved ebp 的 4 byte 就行了阿?
-    // xEmit("	andl	$-16, %%esp\n	subl	$%d, %%esp\n", 48); // ((d+15)/16)*16
     if (strcmp(d, "main") == 0) { xEmit("	call	___main\n"); }
   } else if (strcmp(op, "return") == 0) {
     xEmit("	movl %s, %%eax\n	leave\n	ret\n", d);
@@ -70,11 +70,12 @@ void xCode(char *op, char *_d, char *_p1, char *_p2) {
   } else if (strcmp(op, "param")==0) {
   } else if (strcmp(op, "local") == 0) {
   } else if (strcmp(op, "extern") == 0) {
-  } else if (isMember(op, "~ + - * / & | ^ && ||")) {
+  } else if (isMember(op, "~ + - * / & | ^ && || [] ptr*")) {
     xEmit("	movl	%s, %%eax\n", p1);
     switch (*op) {
       // uniary operator
       case '~': xEmit("	notl	%%eax\n"); break;
+      case 'p': xEmit("	movl	(%%eax), %%eax\n"); break; // ptr*
       // binary operator
       case '+': xEmit("	addl	%s, %%eax\n", p2); break;
       case '-': xEmit("	subl	%s, %%eax\n", p2); break;
@@ -83,8 +84,12 @@ void xCode(char *op, char *_d, char *_p1, char *_p2) {
       case '&': xEmit("	andl	%s, %%eax\n", p2); break;
       case '|': xEmit("	orl	%s, %%eax\n", p2); break;
       case '^': xEmit("	xorl	%s, %%eax\n", p2); break;
+      case '[': 
+        xEmit("	addl	%s, %%eax\n", p2);
+        if (strcmp("int*", x)==0) xEmit("	shll	$2, %%eax\n"); // int* a[i] => a[i*4] => a[i<<2]
+        break;
     }
-    xEmit("	movl %%eax, %s\n", d);
+    xEmit("	movl	%%eax, %s\n", d);
   } else if (isMember(op, "< > == != >= <=")) {
     // http://www.fermimn.gov.it/linux/quarta/x86/cmp.htm
     // CMP subtracts the second operand from the first but, unlike the SUB instruction, does not store the result; only the flags are changed.

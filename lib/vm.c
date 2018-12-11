@@ -7,10 +7,18 @@ VmCode vmCodes[CODEMAX], vmGlobals[CODEMAX], *fCode = NULL;
 Pair localList[CODEMAX], globalList[CODEMAX];
 Map  symLocal, symGlobal;
 
+VmCode *lookup(char *name) {
+  VmCode *c = mapLookup(&symLocal, name);
+  if (c != NULL) return c;
+  c = mapLookup(&symGlobal, name);
+  if (c != NULL) return c;
+  return NULL;
+}
+
 char *vmId(char *name) {
   if (isdigit(*name) || *name=='\0') return name;
   VmCode *c = mapLookup(&symLocal, name);
-  if (c != NULL) return c->_p2;
+  if (c != NULL) return c->x;
   c = mapLookup(&symGlobal, name);
   if (c != NULL) {
     if (strcmp(c->op, "str") == 0)
@@ -20,13 +28,25 @@ char *vmId(char *name) {
   }
   if (*name == '_') return name;
   return stPrint("?%s", name);
-  // return name;
-  // error("vmId: variable %s not defined!", name);
-  // return NULL;
 }
 
+/*
+char *vmId(char *name) {
+  if (isdigit(*name) || *name=='\0') return name;
+  VmCode *c = lookup(name);
+  if (*name == '_') return name;
+  if (c == NULL) return stPrint("?%s", name);
+  if (strcmp(c->op, "str")==0)
+    return stPrint("$%s", c->d);
+  else if (isMember(c->op, "extern global")) 
+    return stPrint("_%s", c->d);
+  else // local
+    return c->_p2;
+}
+*/
+
 VmCode vmCodeNew(char *op, char *d, char *p1, char *p2) {
-  VmCode c = { .op=op, .d=d, .p1=p1, .p2=p2, ._d=d, ._p1=p1, ._p2=p2 };
+  VmCode c = { .op=op, .d=d, .p1=p1, .p2=p2, ._d=d, ._p1=p1, ._p2=p2, .x="" };
   if (!isMember(op, "file str global extern function param local label -function -file")) {
     c._d=vmId(d); c._p1=vmId(p1); c._p2=vmId(p2);
   }
@@ -50,21 +70,30 @@ VmCode *vmCode(char *op, char *d, char *p1, char *p2) {
     mapAdd(&symGlobal, d, c);
   } else if (strcmp(op, "label")==0) {
   } else if (strcmp(op, "param")==0) {
-    c->_p2 = stPrint("P%d", paramTop++);
+    c->x = stPrint("P%d", paramTop++);
     mapAdd(&symLocal, d, c);
   } else if (strcmp(op, "local")==0) {
-    c->_p2 = stPrint("L%d", localTop++);
+    c->x = stPrint("L%d", localTop++);
     mapAdd(&symLocal, d, c);
   } else if (strcmp(op, "-function")==0) {
+    // 參考: https://eli.thegreenplace.net/2011/02/04/where-the-top-of-the-stack-is-on-x86
     int argSize = argTop + 1; // +1 存放 return address
     int frameSize = MAX(localTop, argSize) + 1; // +1 存放 saved ebp
-    fCode->_p2 = stPrint("%d", frameSize);
+    fCode->x = stPrint("%d", frameSize);
   } else if (strcmp(op, "call")==0) {
     argIdx = 0;
   } else if (strcmp(op, "arg")==0) {
-    c->_p2 = stPrint("%d", argIdx++);
+    c->x = stPrint("%d", argIdx++);
     if (argIdx > argTop) argTop = argIdx;
-  } 
+  } else if (isMember(op, "++ --")) {
+    VmCode *tc = lookup(d);
+    printf("op=%s d=%s dc->p1=%s\n", op, d, tc->p1);
+    c->x = tc->p1;
+  } else if (isMember(op, "[]")) {
+    VmCode *tc = lookup(p1);
+    printf("op=%s p1=%s dc->p1=%s\n", op, p1, tc->p1);
+    c->x = tc->p1;
+  }
   return c;
 }
 
@@ -99,7 +128,7 @@ void vmDump(VmCode *codes, int top) {
   printf("=============vmDump()==============\n");
   for (int i=0; i<top; i++) {
     VmCode *c = &codes[i];
-    printf("%-8s %-8s %-8s %-8s # %-8s %-8s %-8s\n", c->op, c->d, c->p1, c->p2, c->_d, c->_p1, c->_p2);
+    printf("%-8s %-8s %-8s %-8s # %-8s %-8s %-8s # %-8s\n", c->op, c->d, c->p1, c->p2, c->_d, c->_p1, c->_p2, c->x);
   }
 }
 
@@ -110,8 +139,8 @@ void asmInit(char *file) {
 }
 
 void asmCode(VmCode *c) {
-  asmEmit("\n# %-8s %-8s %-8s %-8s # %-8s %-8s %-8s\n", c->op, c->d, c->p1, c->p2, c->_d, c->_p1, c->_p2);
-  xCode(c->op, c->_d, c->_p1, c->_p2);
+  asmEmit("# %-8s %-8s %-8s %-8s # %-8s %-8s %-8s # %-8s\n", c->op, c->d, c->p1, c->p2, c->_d, c->_p1, c->_p2, c->x);
+  xCode(c->op, c->_d, c->_p1, c->_p2, c->x);
 }
 
 void asmClose() {

@@ -18,6 +18,10 @@ char *P() {
   } else { // id
     if (op1 != NULL) vmCode(op1, id, "", "");
     p = id;
+    if (star != NULL) {
+      char *t = vmNextTemp();
+      vmCode("ptr*", t, id, "");
+    }
     if (isNext("++ --")) {
       op2 = next();
       vmCode(op2, id, "", "");
