@@ -131,17 +131,21 @@ void RETURN() {
 
 // CALL(id) = id ( LIST<E> )
 char *CALL(char *id) {
+  char *args[ARGMAX];
+  int top = 0;
   skip("(");
   if (!isNext(")")) {
-    char *e = EXP();
-    vmCode("arg", e, "", "");
+    args[top++] = EXP();
     while (isNext(",")) {
       skip(",");
-      e = EXP();
-      vmCode("arg", e, "", "");
+      args[top++] = EXP();
+      assert(top < ARGMAX);
     }
   }
   skip(")");
+  for (int i=0; i<top; i++) {
+    vmCode("arg", args[i], "", "");
+  }
   char *t = vmNextTemp();
   vmCode("call", t, id, "");
   return t;
@@ -165,9 +169,7 @@ char *DECL(int scope, char *type) {
   return ASSIGN(scope, typeStar(type, star));
 }
 
-// STMT = WHILE | IF | BLOCK | RETURN | VAR ; | (ASSIGN | CALL);
-// ASSIGN: id = E
-// CALL  : id (...)
+// STMT = WHILE | IF | BLOCK | RETURN | VAR ; | ASSIGN;
 void STMT() {
   if (isNext("while"))
     WHILE();

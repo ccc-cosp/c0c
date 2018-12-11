@@ -1,9 +1,7 @@
 #include <stdio.h>
 
 int sum(int n) {
-  int s, i;
-  s = 0;
-  i = 1;
+  int s = 0, i = 1;
   printf("i=%d s=%d n=%d\n", i, s, n);
   while (i <= n) {
     s = s + i;
@@ -14,7 +12,7 @@ int sum(int n) {
 }
 
 int main() {
-  int total;
-  total = sum(10);
-  printf("sum(10)=%d\n", total);
+  // int total = sum(10);
+  // printf("sum(10)=%d\n", total);
+  printf("sum(10)=%d\n", sum(10));
 }

@@ -1,4 +1,41 @@
 
+## call 的 bug
+
+  printf("sum(10)=%d\n", sum(10));
+
+會造成 arg 亂掉！
+
+```
+# arg      _Str4                      # $_Str4                     # 0       
+	movl $_Str4, %eax
+	movl %eax, 0(%esp)
+# arg      10                         # 10                         # 1       
+	movl $10, %eax
+	movl %eax, 4(%esp)
+# local    t0                         # t0                         # L0      
+# call     t0       sum               # L0       _sum              #         
+	call _sum
+	movl %eax, -4(%ebp)
+# arg      t0                         # L0                         # 0       
+	movl -4(%ebp), %eax
+	movl %eax, 0(%esp)
+# local    t1                         # t1                         # L1      
+# call     t1       printf            # L1       _printf           #         
+	call _printf
+```
+
+解決方法: 在 char *CALL(char *id) 裏最後才產生 arg 就行了
+
+```c
+char *CALL(char *id) {
+  ...
+  for (int i=0; i<top; i++) {
+    vmCode("arg", args[i], "", "");
+  }
+  ...
+}
+```
+
 ## frame size 的 bug
 
 在 x86.c 當中，subl $%d, %esp 應該減多少？按理說應該是 fLocalTop*4 + 4 ，但卻會當掉。

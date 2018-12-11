@@ -5,6 +5,7 @@
 #include "scan.h"
 #include "vm.h"
 
+#define ARGMAX 100
 enum {Global, Local, Inner};
 typedef char*(*F0)();
 extern char code[];

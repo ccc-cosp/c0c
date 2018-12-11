@@ -27,10 +27,10 @@ _sum:
 	subl	$24, %esp
 # param    n        int               # n        int               # P0      
 # local    s        int               # s        int               # L0      
-# local    i        int               # i        int               # L1      
 # =        s        0                 # L0       0                 #         
 	movl	$0, %ebx
 	movl	%ebx, -4(%ebp)
+# local    i        int               # i        int               # L1      
 # =        i        1                 # L1       1                 #         
 	movl	$1, %ebx
 	movl	%ebx, -8(%ebp)
@@ -111,24 +111,21 @@ _main:
 	movl	%esp, %ebp
 	subl	$16, %esp
 	call	___main
-# local    total    int               # total    int               # L0      
 # arg      10                         # 10                         # 0       
 	movl $10, %eax
 	movl %eax, 0(%esp)
-# local    t0                         # t0                         # L1      
-# call     t0       sum               # L1       _sum              #         
+# local    t0                         # t0                         # L0      
+# call     t0       sum               # L0       _sum              #         
 	call _sum
-	movl %eax, -8(%ebp)
-# =        total    t0                # L0       L1                #         
-	movl	-8(%ebp), %ebx
-	movl	%ebx, -4(%ebp)
+	movl %eax, -4(%ebp)
 # arg      _Str4                      # $_Str4                     # 0       
 	movl $_Str4, %eax
 	movl %eax, 0(%esp)
-# arg      total                      # L0                         # 1       
+# arg      t0                         # L0                         # 1       
 	movl -4(%ebp), %eax
 	movl %eax, 4(%esp)
-# call     t0       printf            # L1       _printf           #         
+# local    t1                         # t1                         # L1      
+# call     t1       printf            # L1       _printf           #         
 	call _printf
 	movl %eax, -8(%ebp)
 # -function main                       # main                       #         
