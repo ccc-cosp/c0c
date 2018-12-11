@@ -1,4 +1,4 @@
-#include "../lib/compiler.h"
+#include "compiler.h"
 
 void PARAM() {
   char *type = skipType(Type);

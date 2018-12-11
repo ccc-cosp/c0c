@@ -7,57 +7,48 @@ char *typeStar(char *type, char *star) {
   return stPrint("%s%s", type, star);
 }
 
-// P = *? (++|--)? Id (++|--)? | CALL
+// P = ((E) | Number | Literal | ID) ([E] | (LIST<E>) | ++ | --)
 char *P() {
-  char *p, *star = NULL, *op1 = NULL, *op2 = NULL;
-  if (isNext("*")) star = next();
-  if (isNext("++ --")) op1 = next();
-  char *id = skipType(Id);
-  if (isNext("(")) { // CALL ex: sum(n)
-    p = CALL(id);
-  } else { // id
-    if (op1 != NULL) vmCode(op1, id, "", "");
-    p = id;
-    if (star != NULL) {
+  char *p;
+  if (isNext("(")) { // '(' E ')'
+    skip("("); // (
+    p = E();
+    skip(")"); // )
+  } else if (isNextType(Literal)) { // ex: Literal : "hello ...."
+    char *str = next();
+    p = vmNextLabel("Str");
+    vmGlobal("str", p, str, "");
+  } else if (isNextType(Number)) { // ex: Number: 347
+    p = next();
+  } else if (isNextType(Id)) {
+    p = next();
+  }
+  while (isNext("[ ( ++ --")) {
+    if (isNext("[")) {
+      skip("[");
+      char *e = E();
+      skip("]");
       char *t = vmNextTemp();
-      vmCode("ptr*", t, id, "");
-    }
-    if (isNext("++ --")) {
-      op2 = next();
-      vmCode(op2, id, "", "");
+      vmCode("[]", t, p, e);
+      p = t;
+    } else if (isNext("(")) {
+      p = CALL(p);
+    } else if (isNext("++ --")) {
+      char *op = next();
+      vmCode(op, p, "", "");
     }
   }
   return p;
 }
 
-// F = [&+-~!]? ((E) | Number | Literal | P) [E]*
+// F = (++ | -- | [*&+-~!])? P
 char *F() {
-  char *f, *op0 = NULL;
-  if (isNext("& + - ~ !")) op0 = next();
-  if (isNext("(")) { // '(' E ')'
-    skip("("); // (
-    f = E();
-    skip(")"); // )
-  } else if (isNextType(Literal)) { // ex: Literal : "hello ...."
-    char *str = next();
-    f = vmNextLabel("Str");
-    vmGlobal("str", f, str, "");
-  } else if (isNextType(Number)) { // ex: Number: 347
-    f = next();
-  } else {
-    f = P();
-  }
+  char *op0 = NULL;
+  if (isNext("* & + - ~ ! ++ --")) op0 = next();
+  char *f = P();
   if (op0 != NULL) {
     char *t = vmNextTemp();
     vmCode(op0, t, f, "");
-    f = t;
-  }
-  while (isNext("[")) {
-    skip("[");
-    char *e = E();
-    skip("]");
-    char *t = vmNextTemp();
-    vmCode("[]", t, f, e);
     f = t;
   }
   return f;
@@ -156,26 +147,22 @@ char *CALL(char *id) {
   return t;
 }
 
-// ASSIGN(id): id (++|--)? (= E)?
-char *ASSIGN(char *id, int scope, char *type) {
-  char *op = "";
-  if (isNext("++ --")) op = next();
-  if (*type != '\0') vmCode("local", id, type, "");
+// ASSIGN(): P (=E)?
+char *ASSIGN(int scope, char *type) {
+  char *p = P();
+  if (*type != '\0') vmCode("local", p, type, "");
   if (isNext("=")) {
-    skip("=");
-    char *e = EXP();
-    vmCode("=", id, e, ""); // ""=star ??
+    next();
+    char *e = E();
+    vmCode("=", p, e, "");
   }
-  if (*op != '\0') vmCode(op, id, "", "");
-  return id;
+  return p;
 }
 
 // DECL: *? ASSIGN
 char *DECL(int scope, char *type) {
   char *star = isNext("*") ? skip("*") : "";
-  char *id = skipType(Id);
-  char *ptype = typeStar(type, star);
-  return ASSIGN(id, scope, ptype);
+  return ASSIGN(scope, typeStar(type, star));
 }
 
 // STMT = WHILE | IF | BLOCK | RETURN | VAR ; | (ASSIGN | CALL);
@@ -194,12 +181,7 @@ void STMT() {
     VAR(Local);
     skip(";");
   } else {
-    char *id = skipType(Id);
-    if (isNext("(")) {
-      CALL(id);
-    } else {
-      ASSIGN(id, Local, "");
-    }
+    ASSIGN(Local, "");
     skip(";");
   }
 }

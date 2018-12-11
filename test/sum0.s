@@ -63,12 +63,13 @@ _WBEGIN1:
 	movl	-12(%ebp), %eax
 	cmpl	$0, %eax
 	je	_WEND2
-# +        t0       s        i        # L2       L0       L1       #         
+# local    t1                         # t1                         # L3      
+# +        t1       s        i        # L3       L0       L1       #         
 	movl	-4(%ebp), %eax
 	addl	-8(%ebp), %eax
-	movl	%eax, -12(%ebp)
-# =        s        t0                # L0       L2                #         
-	movl	-12(%ebp), %ebx
+	movl	%eax, -16(%ebp)
+# =        s        t1                # L0       L3                #         
+	movl	-16(%ebp), %ebx
 	movl	%ebx, -4(%ebp)
 # arg      _Str3                      # $_Str3                     # 0       
 	movl $_Str3, %eax
@@ -82,12 +83,12 @@ _WBEGIN1:
 # call     t0       printf            # L2       _printf           #         
 	call _printf
 	movl %eax, -12(%ebp)
-# +        t0       i        1        # L2       L1       1        #         
+# +        t1       i        1        # L3       L1       1        #         
 	movl	-8(%ebp), %eax
 	addl	$1, %eax
-	movl	%eax, -12(%ebp)
-# =        i        t0                # L1       L2                #         
-	movl	-12(%ebp), %ebx
+	movl	%eax, -16(%ebp)
+# =        i        t1                # L1       L3                #         
+	movl	-16(%ebp), %ebx
 	movl	%ebx, -8(%ebp)
 # jmp      _WBEGIN1                   # _WBEGIN1                   #         
 	jmp	_WBEGIN1
