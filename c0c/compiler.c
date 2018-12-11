@@ -32,7 +32,7 @@ char *P() {
 
 // F = [&+-~!]? ((E) | Number | Literal | P) [E]*
 char *F() {
-  char *f, *id = NULL, *op0 = NULL, *op1 = NULL, *op2 = NULL;
+  char *f, *op0 = NULL;
   if (isNext("& + - ~ !")) op0 = next();
   if (isNext("(")) { // '(' E ')'
     skip("("); // (

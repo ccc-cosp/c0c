@@ -1,8 +1,9 @@
 #include <stdio.h>
 
 int sum(int n) {
-  int s = 0;
-  int i = 1;
+  int s, i;
+  s = 0;
+  i = 1;
   printf("i=%d s=%d n=%d\n", i, s, n);
   while (i <= n) {
     s = s + i;
@@ -13,6 +14,7 @@ int sum(int n) {
 }
 
 int main() {
-  int total = sum(10);
+  int total;
+  total = sum(10);
   printf("sum(10)=%d\n", total);
 }
